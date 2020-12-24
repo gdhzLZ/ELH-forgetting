@@ -104,7 +104,6 @@ public class  Formula {
 
 	@Override
 	public boolean equals(Object object) {
-
 		if (this == object) {
 			return true;
 		} else if (object == null || this.getClass() != object.getClass()) {

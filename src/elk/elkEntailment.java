@@ -64,7 +64,7 @@ public class elkEntailment {
         return isentailed;
     }
 
-    public static void check(OWLOntology onto_2,List<Formula> uniform_interpolant){
+    public static void check(OWLOntology onto_2,List<Formula> uniform_interpolant)throws Exception{
         BackConverter bc = new BackConverter();
         OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(onto_2);
         int i = 0;
@@ -74,6 +74,7 @@ public class elkEntailment {
             if(!entailed(reasoner,axiom,2)){
                 System.out.println("Unexpected Axiom: " + formula);
                 BackTrack.getInferencePath(formula);
+
             }
             else{
                 System.out.println("Yes "+i+" "+len);

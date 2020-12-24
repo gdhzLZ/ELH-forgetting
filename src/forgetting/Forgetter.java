@@ -238,6 +238,12 @@ public class Forgetter {
 
 					} else {
                         Set<Formula> beforeIntroDefiners = new LinkedHashSet<>(pivot_list_normalised);
+                        int length1 = pivot_list_normalised.size();
+						pivot_list_normalised = di.removeCyclicDefinition(concept,pivot_list_normalised);
+						int length2 = pivot_list_normalised.size();
+						if(length1 != length2){
+							System.out.println("There is extra expressivity !");
+						}
                         pivot_list_normalised = di.introduceDefiners(concept, pivot_list_normalised);
                         Set<Formula> afterIntroDefiners = new LinkedHashSet<>(pivot_list_normalised);
                         Set<OWLAxiom> containNewDefinersSet = new LinkedHashSet<>();
@@ -247,6 +253,8 @@ public class Forgetter {
                         manager.addAxioms(onto,containNewDefinersSet);
 						pivot_list_normalised = inf.combination_A(concept, pivot_list_normalised, onto);
 						d_sig_list_normalised.addAll(pivot_list_normalised);
+						DefinerIntroducer.definer_set.remove(concept);
+
 					}
 				}
 
@@ -266,7 +274,9 @@ public class Forgetter {
 		return formula_list_normalised;
 	}
 	public static void main(String [] args) throws  Exception {
+		/*
 		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
+
         Formula CA= new Inclusion(new AtomicConcept("C"),new AtomicConcept("A"));
         Formula existrA = new Exists(new AtomicRole("r"),new AtomicConcept("A"));
         Set<Formula> AandB = new LinkedHashSet<>();
@@ -300,9 +310,41 @@ public class Forgetter {
         OWLReasoner reasoner =  new ElkReasonerFactory().createReasoner(onto);
         System.out.println(elkEntailment.entailed(reasoner,bc.toOWLAxiom(new Inclusion(TopConcept.getInstance(),new AtomicConcept("B")))));
         List<Formula> ui = fg.Forgetting(new LinkedHashSet<>(),c_sig,formula_list_normalised,onto);
-        System.out.println(ui);
+        Set<Formula> n = new HashSet<>(ui);
+        for(Formula f:ui){
+        	System.out.println(f);
+        	System.out.println(f.hashCode());
+		}
+        System.out.println(n);
 
-    }
+		 */
+
+
+
+
+		Formula f1 = new Inclusion(new AtomicConcept("A"),new AtomicConcept("H"));
+		Set<Formula> AandB = new LinkedHashSet<>();
+		AandB.add(new AtomicConcept("A"));AandB.add(new AtomicConcept("B"));
+		And and = new And(AandB);
+
+		Set<Formula> AandC = new LinkedHashSet<>();
+		AandC.add(new AtomicConcept("A"));AandC.add(new AtomicConcept("C"));
+		And and2 = new And(AandC);
+		Formula f2 = new Inclusion(new AtomicConcept("A"),new Exists(new AtomicRole("r"),new AtomicConcept("A")));
+		Forgetter fg = new Forgetter();
+		Set<AtomicConcept> c_sig = new LinkedHashSet<>();
+		c_sig.add(new AtomicConcept("A"));
+		BackConverter bc = new BackConverter();
+		List<Formula> formula_list_normalised = new ArrayList<>();
+		formula_list_normalised.add(f1);		formula_list_normalised.add(f2);
+
+		OWLOntology onto = bc.toOWLOntology(new ArrayList<>(formula_list_normalised));
+		System.out.println(formula_list_normalised);
+		List<Formula> ui = fg.Forgetting(new LinkedHashSet<>(),c_sig,formula_list_normalised,onto);
+		System.out.println(ui);
+
+
+	}
 
 
 }

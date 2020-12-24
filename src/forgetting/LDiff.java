@@ -192,6 +192,7 @@ public class LDiff {
 
 
 		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
+		/*
 		System.out.println("Onto_1 Path: ");
 		String filePath1 = "/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170131.owl/snomed_ct_intl_20170131.owl";
 		OWLOntology onto_1 = manager1.loadOntologyFromOntologyDocument(new File(filePath1));
@@ -210,28 +211,24 @@ public class LDiff {
 		long endTime1 = System.currentTimeMillis();
 		System.out.println("Total Duration = " + (endTime1 - startTime1) + "millis");
 
+		 */
 
-		/*
-		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
-		String filePath2 = "/Users/liuzhao/nju/ontologyCompare/FINISHED/ordoEL/v2.9.owl";
-		OWLOntology onto_2 = manager1.loadOntologyFromOntologyDocument(new File(filePath2));
-		String UI = "/Users/liuzhao/nju/ontologyCompare/FINISHED/ordoEL/ui.owl";
-		OWLOntology ui = manager1.loadOntologyFromOntologyDocument(new File(UI));
-
-		OWLReasoner reasoner =  new ElkReasonerFactory().createReasoner(onto_2);
-		LDiff ldiff = new LDiff();
-		for(OWLAxiom axiom : ui.getAxioms()){
-			System.out.println(axiom);
-			if(!ldiff.entailed(reasoner,axiom)){
-				System.out.println("error");
-			}
+		OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
+		System.out.println("Onto_2 Path: ");
+		String filePath2 = "/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170731.owl/snomed_ct_intl_20170731.owl";
+		OWLOntology onto_2 = manager2.loadOntologyFromOntologyDocument(new File(filePath2));
 
 
+		OWLOntologyManager manager3 = OWLManager.createOWLOntologyManager();
+		System.out.println("ui Path: ");
+		String filePath3 = "/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170731.owl/ui.owl";
+		OWLOntology ui = manager3.loadOntologyFromOntologyDocument(new File(filePath3));
+		List<Formula> nn = new ArrayList<>();
+		Converter ct = new Converter();
+		for (OWLAxiom axiom :ui.getLogicalAxioms()){
+			nn.addAll(ct.AxiomConverter(axiom));
 		}
-		*/
-
-
-
+		elkEntailment.check(onto_2,nn);
 
 
 	}

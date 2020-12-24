@@ -74,14 +74,15 @@ public class Inferencer {
 		List<Formula> negative_star_and_exists_premises = new ArrayList<>(); // exists r.A and F in G   7
 		List<Formula> negative_exists_and_premises = new ArrayList<>(); //  exist r. (A and D) in G   8
 		List<Formula> negative_star_and_exists_and_premises = new ArrayList<>(); //  exist r. (A and D) and F in G   9
+
+
 		EChecker ec = new EChecker();
 
 		for (Formula formula : formula_list) {
 
 			Formula subsumee = formula.getSubFormulas().get(0);
 			Formula subsumer = formula.getSubFormulas().get(1);
-			//System.out.println("formula = " + formula);
-			
+
 			if (!ec.isPresent(concept, formula)) {
 				output_list.add(formula);
 
@@ -89,6 +90,7 @@ public class Inferencer {
 				positive_star_premises.add(formula);
 	
 			} else if (subsumer instanceof Exists && ec.isPresent(concept, subsumer)) {
+
 				if(subsumer.getSubFormulas().get(1).equals(concept))positive_exists_premises.add(formula);
 				else positive_exists_and_premises.add(formula);
 	
@@ -117,9 +119,23 @@ public class Inferencer {
 				else negative_exists_and_premises.add(formula);
 
 			} else {
+
 				throw new Exception("Damn! Error!");
 			}
 		}
+		System.out.println("1  "+ positive_star_premises);
+		System.out.println("1  "+ positive_exists_premises);
+
+		System.out.println("1  "+ positive_exists_and_premises);
+
+		System.out.println("1  "+ negative_star_premises);
+
+		System.out.println("1  "+ negative_star_and_premises);
+		System.out.println("1  "+ negative_exists_premises);
+		System.out.println("1  "+ negative_star_and_exists_premises);
+		System.out.println("1  "+ negative_exists_and_premises);
+		System.out.println("1  "+ negative_star_and_exists_and_premises);
+
 		//1
 		for (Formula ps_premise : positive_star_premises) {
 			Formula subsumee = ps_premise.getSubFormulas().get(0);
@@ -161,17 +177,25 @@ public class Inferencer {
 		//2
 
 		for (Formula pe_premise : positive_exists_premises) {
-			Formula temp2 = AckermannReplace(concept, pe_premise, TopConcept.getInstance());
-			if(!tc.isTautology(temp2)) output_list.add(temp2);
-			//BackTrack.addFatherHash(temp2.clone(),pe_premise.clone(),6);
-			if (!negative_star_premises.isEmpty()) {
-				Set<Formula> and = new LinkedHashSet<>();
-				for (Formula ns_premise : negative_star_premises) {
 
-					and.add(ns_premise.getSubFormulas().get(1));
+
+			int tag = 0;
+
+			if (!negative_star_premises.isEmpty()) {
+				tag = 1;
+				Formula temp = null;
+				if(negative_star_premises.size()>1) {
+					Set<Formula> and = new LinkedHashSet<>();
+					for (Formula ns_premise : negative_star_premises) {
+
+						and.add(ns_premise.getSubFormulas().get(1));
+					}
+					Formula And = new And(and);
+					temp = AckermannReplace(concept, pe_premise, And);
 				}
-				Formula And = new And(and);
-				Formula temp = AckermannReplace(concept, pe_premise, And);
+				else{
+					temp = AckermannReplace(concept, pe_premise, negative_star_premises.get(0).getSubFormulas().get(1));
+				}
 				if(!tc.isTautology(temp)) output_list.add(temp);
 
 				//BackTrack.addFatherHash(temp.clone(),pe_premise.clone(),And.clone(),7);
@@ -187,6 +211,7 @@ public class Inferencer {
 				And and = new And(exceptConcept);
 				Formula nowCheck = new Inclusion(TopConcept.getInstance(),and);
 				if(elkEntailment.entailed(reasoner,bc.toOWLSubClassOfAxiom(nowCheck),2)){
+					tag = 1;
 					Formula temp = new Inclusion(pe_premise.getSubFormulas().get(0),new Exists(pe_premise.getSubFormulas().get(1).
 							getSubFormulas().get(0),nsa_premise.getSubFormulas().get(1)));
 					if(!tc.isTautology(temp)) output_list.add(temp);
@@ -197,6 +222,7 @@ public class Inferencer {
 
 			}
 			for(Formula ne_premise :negative_exists_premises){
+
 				if(elkEntailment.entailed(reasoner,bc.toOWLAxiom(new Inclusion(pe_premise.getSubFormulas().get(1).getSubFormulas().get(0),
 						ne_premise.getSubFormulas().get(0).getSubFormulas().get(0))),2)){
 					Formula temp = new Inclusion(pe_premise.getSubFormulas().get(0),ne_premise.getSubFormulas().get(1));
@@ -275,6 +301,11 @@ public class Inferencer {
 				}
 
 			}
+			if(tag == 0){
+				Formula temp2 = AckermannReplace(concept, pe_premise, TopConcept.getInstance());
+				if(!tc.isTautology(temp2)) output_list.add(temp2);
+				//BackTrack.addFatherHash(temp2.clone(),pe_premise.clone(),6);
+			}
 
 
 
@@ -283,18 +314,24 @@ public class Inferencer {
 		//3
 
 		for(Formula pea_premise :positive_exists_and_premises){
-			Formula temp2 = AckermannReplace(concept, pea_premise, TopConcept.getInstance());
-			if(!tc.isTautology(temp2)) output_list.add(temp2);
-			//BackTrack.addFatherHash(temp2.clone(),pea_premise.clone(),6);
 
-
+			int tag = 0;
 			if (!negative_star_premises.isEmpty()) {
-				Set<Formula> and = new LinkedHashSet<>();
-				for (Formula ns_premise : negative_star_premises) {
-					and.add(ns_premise.getSubFormulas().get(1));
+				tag = 1;
+				Formula temp = null;
+				if(negative_star_premises.size()>1) {
+					Set<Formula> and = new LinkedHashSet<>();
+
+					for (Formula ns_premise : negative_star_premises) {
+						and.add(ns_premise.getSubFormulas().get(1));
+					}
+					Formula And = new And(and);
+					temp = AckermannReplace(concept, pea_premise, And);
 				}
-				Formula And = new And(and);
-				Formula temp = AckermannReplace(concept, pea_premise, And);
+				else{
+					temp = AckermannReplace(concept, pea_premise, negative_star_premises.get(0).getSubFormulas().get(1));
+
+				}
 				if(!tc.isTautology(temp)) output_list.add(temp);
 				//BackTrack.addFatherHash(temp.clone(),pea_premise.clone(),And.clone(),7);
 			}
@@ -314,12 +351,12 @@ public class Inferencer {
 				And and2 = new And(exceptConcept2);
 				Formula nowCheck = new Inclusion(and2,and);
 				if(elkEntailment.entailed(reasoner,bc.toOWLSubClassOfAxiom(nowCheck),2)){
+
 					Formula temp = new Inclusion(pea_premise.getSubFormulas().get(0),new Exists(pea_premise.getSubFormulas().get(1).
 							getSubFormulas().get(0),nsa_premise.getSubFormulas().get(1)));
 					if(!tc.isTautology(temp)) output_list.add(temp);
 					//BackTrack.addFatherHash(temp.clone(),pea_premise.clone(),nsa_premise.clone(),7);
 				}
-
 			}
 
 			for(Formula ne_premise:negative_exists_premises){
@@ -411,6 +448,11 @@ public class Inferencer {
 				}
 
 
+			}
+			if(tag == 0){
+				Formula temp2 = AckermannReplace(concept, pea_premise, TopConcept.getInstance());
+				if(!tc.isTautology(temp2)) output_list.add(temp2);
+				//BackTrack.addFatherHash(temp2.clone(),pea_premise.clone(),6);
 			}
 
 		}

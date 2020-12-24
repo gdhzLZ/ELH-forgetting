@@ -32,7 +32,19 @@ public class DefinerIntroducer {
 	public static Set<OWLEntity> owldefiner_set = new LinkedHashSet<>();
 	public static Set<AtomicConcept> definer_set = new LinkedHashSet<>();
 
+	public List<Formula> removeCyclicDefinition(AtomicConcept concept,List<Formula> beforeIntroDefiners){
+		FChecker fc = new FChecker();
+		List<Formula> ans = new ArrayList<>();
+		for(Formula formula : beforeIntroDefiners){
+			if(fc.negative(concept,formula) > 0 && fc.positive(concept,formula) > 0){
 
+			}
+			else{
+				ans.add(formula);
+			}
+		}
+		return ans;
+	}
 	public List<Formula> introduceDefiners(AtomicConcept concept, List<Formula> input_list)
 			throws Exception {
 
@@ -47,17 +59,21 @@ public class DefinerIntroducer {
 
 			output_list.addAll(re);
 			if(re.size() <= 1) continue;
+			/*
 			for(Formula temp : re){
 
 				if(temp.toString().contains("Definer")){
 					BackTrack.addFatherHash(temp,outputFormula,1);
 				}
 			}
+
+			 */
 			System.out.println("original formla : " );
 			System.out.println(outputFormula+" "+concept);
 			System.out.println("after introduced :");
 			for(Formula temp : re){
 				System.out.println(temp);
+
 			}
 			System.out.println("--------------------" );
 
@@ -282,6 +298,7 @@ public class DefinerIntroducer {
 						output_list.add(formula);
 						Set<Formula> conjunct_set = filler.getSubformulae();
 						for (Formula conjunct : conjunct_set) {
+
 							output_list.addAll(introduceDefiners(concept, new Inclusion(definer, conjunct)));
 						}
 
@@ -772,18 +789,23 @@ public class DefinerIntroducer {
 			output_list.addAll(re);
 			if(re.size() <= 1) continue;
 
-
+/*
 			for(Formula temp : re){
 
 				if(temp.toString().contains("Definer")){
 					BackTrack.addFatherHash(temp,outputFormula,1);
 				}
 			}
+
+ */
 			System.out.println("original formla and role: " );
 			System.out.println(outputFormula+" "+role);
 			System.out.println("after introduced :");
 			for(Formula temp : re){
 				System.out.println(temp);
+				System.out.println(temp.getSubFormulas().get(0).getClass());
+				System.out.println(temp.getSubFormulas().get(1).getClass());
+
 			}
 			System.out.println("--------------------" );
 
