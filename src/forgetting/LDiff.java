@@ -52,7 +52,6 @@ public class LDiff {
      */
 	public void compute_LDiff(OWLOntology onto_1, OWLOntology onto_2, String path)
 			throws Exception {
-		SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, onto_2, ModuleType.STAR);
 		Set<OWLClass> c_sig_1 = onto_1.getClassesInSignature();
 		Set<OWLClass> c_sig_2 = onto_2.getClassesInSignature();
 		Set<OWLClass> c_sig = new LinkedHashSet<>(Sets.difference(c_sig_2, c_sig_1));
@@ -64,14 +63,16 @@ public class LDiff {
         forgettingSignatures.addAll(r_sig);
         forgettingSignatures.addAll(c_sig);
         // Extract module to speed our tool
-		Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(forgettingSignatures);
-		Set<OWLLogicalAxiom>moduleOnto_2OnForgettingSig_logical = new HashSet<>();
+		SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, onto_2, ModuleType.BOT);
+		Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(Sets.difference(onto_2.getSignature(),forgettingSignatures));
+		Set<OWLLogicalAxiom>moduleOnto_2OnCommonSig_logical = new HashSet<>();
+
 		for(OWLAxiom axiom : moduleOnto_2OnForgettingSig){
 			if(axiom instanceof OWLLogicalAxiom){
-				moduleOnto_2OnForgettingSig_logical.add((OWLLogicalAxiom)axiom);
+				moduleOnto_2OnCommonSig_logical.add((OWLLogicalAxiom)axiom);
 			}
 		}
-		System.out.println("module size "+moduleOnto_2OnForgettingSig_logical.size()+"  o2 size "+ onto_2.getLogicalAxioms().size());
+		System.out.println("module size "+moduleOnto_2OnCommonSig_logical.size()+"  o2 size "+ onto_2.getLogicalAxioms().size());
 
 
 		Converter ct = new Converter();
@@ -81,7 +82,8 @@ public class LDiff {
 		Set<AtomicRole> role_set = ct.getRolesfromObjectProperties(r_sig);
 		Set<AtomicConcept> concept_set = ct.getConceptsfromClasses(c_sig);
 
-		List<Formula> formula_list = ct.AxiomsConverter(moduleOnto_2OnForgettingSig_logical);
+		//List<Formula> formula_list = ct.AxiomsConverter(moduleOnto_2OnCommonSig_logical_temp);
+		List<Formula> formula_list = ct.AxiomsConverter(moduleOnto_2OnCommonSig_logical);
 
 		System.out.println("The forgetting task is to eliminate [" + concept_set.size() + "] concept names and ["
 				+ role_set.size() + "] role names from [" + formula_list.size() + "] normalized axioms");
@@ -89,21 +91,21 @@ public class LDiff {
 		long startTime_1 = System.currentTimeMillis();
 		List<Formula> uniform_interpolantList = forgetter.Forgetting(role_set, concept_set, formula_list, onto_2);
 		Set<OWLAxiom> uniform_interpolant = bc.toOWLAxioms(uniform_interpolantList);
+		long endTime_1 = System.currentTimeMillis();
+		System.out.println("Forgetting Duration = " + (endTime_1 - startTime_1) + " millis");
 
 		saveUI(uniform_interpolant,path+"/ui.owl");
 		//elkEntailment.check(onto_2,uniform_interpolantList);
 
 		System.out.println("ui size = " + uniform_interpolant.size());
-		long endTime_1 = System.currentTimeMillis();
-		System.out.println("Forgetting Duration = " + (endTime_1 - startTime_1) + " millis");
 
 		// as we compute the uniform_interpolant on module, we must add the axioms in O2 with no new signatures because they may be explicit witness.
-        for(OWLAxiom axiom : onto_2.getAxioms()){
-            if(axiom instanceof  OWLLogicalAxiom && Sets.intersection(axiom.getSignature(),forgettingSignatures).size() == 0 ){
+        for(OWLLogicalAxiom axiom : onto_2.getLogicalAxioms()){
+            if(Sets.intersection(axiom.getSignature(),forgettingSignatures).size() == 0 ){
                 uniform_interpolant.add(axiom);
             }
         }
-
+		uniform_interpolant = Sets.difference(uniform_interpolant,onto_1.getAxioms());
 		OWLOntology witness_complete_onto = manager.createOntology();
 		OWLOntology witness_explicit_onto = manager.createOntology();
 		OWLOntology witness_implicit_onto = manager.createOntology();
@@ -192,26 +194,32 @@ public class LDiff {
 
 
 		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
-		/*
+
 		System.out.println("Onto_1 Path: ");
-		String filePath1 = "/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170131.owl/snomed_ct_intl_20170131.owl";
+		String filePath1 ="/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170131.owl/snomed_ct_intl_20170131.owl";
 		OWLOntology onto_1 = manager1.loadOntologyFromOntologyDocument(new File(filePath1));
 		System.out.println("onto_1 size = " + onto_1.getLogicalAxiomCount());
 		System.out.println("c_sig_1 size = " + onto_1.getClassesInSignature().size());
 		System.out.println("r_sig_1 size = " + onto_1.getObjectPropertiesInSignature().size());
 		OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
 		System.out.println("Onto_2 Path: ");
-		String filePath2 = "/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170731.owl/snomed_ct_intl_20170731.owl";
+		String filePath2 ="/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170731.owl/snomed_ct_intl_20170731.owl";
 		OWLOntology onto_2 = manager2.loadOntologyFromOntologyDocument(new File(filePath2));
 		System.out.println("onto_2 size = " + onto_2.getLogicalAxiomCount());
 		System.out.println("c_sig_2 size = " + onto_2.getClassesInSignature().size());
 		System.out.println("r_sig_2 size = " + onto_2.getObjectPropertiesInSignature().size());
 		long startTime1 = System.currentTimeMillis(); LDiff diff = new LDiff();
-		diff.compute_LDiff(onto_1, onto_2,  "/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170731.owl");
+		diff.compute_LDiff(onto_1, onto_2,  "/Users/liuzhao/Desktop/experiments/diff/0107");
 		long endTime1 = System.currentTimeMillis();
 		System.out.println("Total Duration = " + (endTime1 - startTime1) + "millis");
 
-		 */
+
+	/*
+		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
+
+		System.out.println("Onto_1 Path: ");
+		String filePath1 = "/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170131.owl/snomed_ct_intl_20170131.owl";
+		OWLOntology onto_1 = manager1.loadOntologyFromOntologyDocument(new File(filePath1));
 
 		OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
 		System.out.println("Onto_2 Path: ");
@@ -223,14 +231,35 @@ public class LDiff {
 		System.out.println("ui Path: ");
 		String filePath3 = "/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170731.owl/ui.owl";
 		OWLOntology ui = manager3.loadOntologyFromOntologyDocument(new File(filePath3));
-		List<Formula> nn = new ArrayList<>();
-		Converter ct = new Converter();
-		for (OWLAxiom axiom :ui.getLogicalAxioms()){
-			nn.addAll(ct.AxiomConverter(axiom));
+		System.out.println(ui.getLogicalAxioms().size());
+		System.out.println(onto_1.getLogicalAxioms().size());
+		System.out.println(onto_2.getLogicalAxioms().size());
+		SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, onto_2, ModuleType.STAR);
+		Set<OWLClass> c_sig_1 = onto_1.getClassesInSignature();
+		Set<OWLClass> c_sig_2 = onto_2.getClassesInSignature();
+		Set<OWLClass> c_sig = new LinkedHashSet<>(Sets.difference(c_sig_2, c_sig_1));
+		Set<OWLObjectProperty> r_sig_1 = onto_1.getObjectPropertiesInSignature();
+		Set<OWLObjectProperty> r_sig_2 = onto_2.getObjectPropertiesInSignature();
+		Set<OWLObjectProperty> r_sig = new LinkedHashSet<>(Sets.difference(r_sig_2, r_sig_1));
+
+		Set<OWLEntity> forgettingSignatures = new HashSet<>();
+		forgettingSignatures.addAll(r_sig);
+		forgettingSignatures.addAll(c_sig);
+		Set<OWLLogicalAxiom> uniform_interpolant = ui.getLogicalAxioms();
+		for(OWLLogicalAxiom axiom : onto_2.getLogicalAxioms()){
+			if(Sets.intersection(axiom.getSignature(),forgettingSignatures).size() == 0 ){
+				uniform_interpolant.add(axiom);
+			}
 		}
-		elkEntailment.check(onto_2,nn);
+		uniform_interpolant = Sets.difference(uniform_interpolant,onto_1.getLogicalAxioms());
+		System.out.println(uniform_interpolant.size());
+		Set<OWLAxiom> temp = new HashSet<>();
+		for(OWLAxiom a: uniform_interpolant){
+			temp.add(a);
+		}
+		System.out.println(Sets.intersection(manager1.createOntology(temp).getSignature(),forgettingSignatures).size());
 
-
+	 */
 	}
 
 	/*public static void main(String[] args)

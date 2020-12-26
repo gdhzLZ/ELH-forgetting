@@ -13,7 +13,6 @@ import concepts.AtomicConcept;
 import concepts.ConceptExpression;
 import formula.Formula;
 import roles.AtomicRole;
-
 public class Exists extends ConceptExpression {
 
 	public Exists() {
@@ -50,5 +49,8 @@ public class Exists extends ConceptExpression {
 		} else {
 			return "\u2203" + role + "." + filler;
 		}
+	}
+	public static void main(String [] args){
+
 	}
 }

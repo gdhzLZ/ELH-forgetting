@@ -1,6 +1,7 @@
 package elk;
 
 import BackTrack.BackTrack;
+import Test.TestForgetting;
 import convertion.BackConverter;
 import formula.*;
 import forgetting.LDiff;
@@ -39,6 +40,7 @@ public class elkEntailment {
     //this function uses a cache to avoid checking the axioms which had been checked before. This function only been used while forgetting.
     public  static boolean  entailed(OWLReasoner reasoner, OWLAxiom i ,Integer tag ){
         if(tag == 2 && hasChecked_OnO2.containsKey(i)){
+
             return hasChecked_OnO2.get(i);
         }
         boolean isentailed = false;
@@ -72,7 +74,7 @@ public class elkEntailment {
         for(Formula formula : uniform_interpolant){
             OWLAxiom axiom = bc.toOWLAxiom(formula);
             if(!entailed(reasoner,axiom,2)){
-                System.out.println("Unexpected Axiom: " + formula);
+                System.out.println("Unexpected Axiom: " + formula +" "+ TestForgetting.isExtra );
                 BackTrack.getInferencePath(formula);
 
             }

@@ -68,7 +68,7 @@ public class Converter {
 
 		return concept_set;
 	}
-		
+
 	public Set<AtomicRole> getRolesfromObjectProperties(Set<OWLObjectProperty> op_set) {
 
 		Set<AtomicRole> role_set = new LinkedHashSet<>();
@@ -102,7 +102,42 @@ public class Converter {
 		}
 		return role_list;
 	}
-
+	public List<Formula> RightSubformulasConverter(List<Formula> formulaList){
+		List<Formula> ans = new ArrayList<>();
+		for(Formula formula : formulaList){
+			ans.add(RightSubformulaConverter(formula));
+		}
+		return ans;
+	}
+	public Formula RightSubformulaConverter(Formula formula){
+		if(formula instanceof AtomicConcept || formula instanceof AtomicRole){
+			return formula;
+		}
+		else if(formula instanceof Inclusion){
+			return new Inclusion(RightSubformulaConverter(formula.getSubFormulas().get(0)),
+					RightSubformulaConverter(formula.getSubFormulas().get(1)));
+		}
+		else if(formula instanceof Exists){
+			return new Exists(formula.getSubFormulas().get(0),RightSubformulaConverter(formula.getSubFormulas().get(1)));
+		}
+		else if(formula instanceof And){
+			Set<Formula> and = new LinkedHashSet<>();
+			for(Formula f: formula.getSubformulae()){
+				if(f instanceof And){
+					for(Formula i:f.getSubformulae()){
+						and.add(RightSubformulaConverter(i));
+					}
+				}
+				else{
+					and.add(RightSubformulaConverter(f));
+				}
+			}
+			return new And(and);
+		}
+		else{
+			return formula;
+		}
+	}
 	public List<Formula> OntologyConverter(OWLOntology ontology) {
 
 		List<Formula> formula_list = new ArrayList<>();		
@@ -112,12 +147,15 @@ public class Converter {
 		
 		for (OWLAxiom owlAxiom : owlAxiom_set) {
 			List<Formula> temp_list = AxiomConverter(owlAxiom);
+			temp_list = RightSubformulasConverter(temp_list);
 			for (Formula formula : temp_list) {
 				Formula subsumer = formula.getSubFormulas().get(1);
 				if (subsumer instanceof And) {
 					Formula subsumee = formula.getSubFormulas().get(0);
 					Set<Formula> conjunct_set = subsumer.getSubformulae();
+
 					for (Formula conjunct : conjunct_set) {
+						//if(conjunct == null) {System.out.println("iiiiii");System.out.println(subsumer);}
 						Formula inclusion = new Inclusion(subsumee, conjunct);
 						formula_list.add(inclusion);
 					}
@@ -132,7 +170,6 @@ public class Converter {
 		long endTime1 = System.currentTimeMillis();
 		
 		System.out.println("Convertion Duration = " + (endTime1 - startTime1) + " millis");
-
 		return formula_list;
 	}
 	
@@ -144,6 +181,7 @@ public class Converter {
 
 		for (OWLAxiom owlAxiom : owlAxiom_set) {
 			List<Formula> temp_list = AxiomConverter(owlAxiom);
+			temp_list = RightSubformulasConverter(temp_list);
 			for (Formula formula : temp_list) {
 				Formula subsumer = formula.getSubFormulas().get(1);
 				if (subsumer instanceof And) {
@@ -151,6 +189,8 @@ public class Converter {
 					Formula subsumee = formula.getSubFormulas().get(0);
 					Set<Formula> conjunct_set = subsumer.getSubformulae();
 					for (Formula conjunct : conjunct_set) {
+						if(conjunct == null) System.out.println("jjjjj");
+
 						Formula inclusion = new Inclusion(subsumee, conjunct);
 						formula_list.add(inclusion);
 					}
@@ -182,12 +222,14 @@ public class Converter {
 	}*/
 	
 		
-	public List<Formula> AxiomConverter(OWLAxiom axiom) {
+	private List<Formula> AxiomConverter(OWLAxiom axiom) {
 
 		if (axiom instanceof OWLSubClassOfAxiom) {
 			OWLSubClassOfAxiom owlSCOA = (OWLSubClassOfAxiom) axiom;
-			Formula converted = new Inclusion(ClassExpressionConverter(owlSCOA.getSubClass()),
-					ClassExpressionConverter(owlSCOA.getSuperClass()));
+			Formula l = ClassExpressionConverter(owlSCOA.getSubClass());
+			Formula r = ClassExpressionConverter(owlSCOA.getSuperClass());
+			if(l == null || r == null) return  Collections.emptyList();
+			Formula converted = new Inclusion(l, r);
 			return Collections.singletonList(converted);
 
 		} else if (axiom instanceof OWLEquivalentClassesAxiom) {
@@ -211,8 +253,10 @@ public class Converter {
 
 		} else if (axiom instanceof OWLSubObjectPropertyOfAxiom) {
 			OWLSubObjectPropertyOfAxiom owlSOPOA = (OWLSubObjectPropertyOfAxiom) axiom;
-			Formula converted = new Inclusion(RoleExpressionConverter(owlSOPOA.getSubProperty()),
-					RoleExpressionConverter(owlSOPOA.getSuperProperty()));
+			Formula l = RoleExpressionConverter(owlSOPOA.getSubProperty());
+			Formula r = RoleExpressionConverter(owlSOPOA.getSuperProperty());
+			if(l == null || r == null) return Collections.emptyList();
+			Formula converted = new Inclusion(l, r);
 			return Collections.singletonList(converted);
 
 		} else if (axiom instanceof OWLEquivalentObjectPropertiesAxiom) {
@@ -241,20 +285,35 @@ public class Converter {
 
 		} else if (concept instanceof OWLObjectSomeValuesFrom) {
 			OWLObjectSomeValuesFrom owlOSVF = (OWLObjectSomeValuesFrom) concept;
-			return new Exists(RoleExpressionConverter(owlOSVF.getProperty()),
-					ClassExpressionConverter(owlOSVF.getFiller()));
+			RoleExpression r = RoleExpressionConverter(owlOSVF.getProperty());
+			Formula c = ClassExpressionConverter(owlOSVF.getFiller());
+			if(r == null || c == null) return null;
+			return new Exists(r,c);
 
 		} else if (concept instanceof OWLObjectIntersectionOf) {
 			OWLObjectIntersectionOf owlOIO = (OWLObjectIntersectionOf) concept;
 			Set<Formula> conjunct_set = new LinkedHashSet<>();
 			for (OWLClassExpression conjunct : owlOIO.getOperands()) {
-				conjunct_set.add(ClassExpressionConverter(conjunct));
+
+				Formula temp = ClassExpressionConverter(conjunct);
+				if(temp == null) return null;
+				try {
+					if (temp instanceof And) throw new Exception("enne ");
+				}
+				catch (Exception e){
+					System.out.println("ggg "+temp+" "+(temp instanceof And)+" "+conjunct.getClass());
+					System.out.println(owlOIO);
+					System.out.println( owlOIO.getOperands());
+
+				}
+				conjunct_set.add(temp);
+
 			}
 			return new And(conjunct_set);
 
 		} 
-
-		return TopConcept.getInstance();
+		return null;
+		//return TopConcept.getInstance();
 	}
 	
 	private RoleExpression RoleExpressionConverter(OWLObjectPropertyExpression role) {
@@ -264,8 +323,8 @@ public class Converter {
 			return new AtomicRole(owlOP.getIRI().toString());
 			
 		}
-		
-		return TopRole.getInstance();
+		return null;
+		//return TopRole.getInstance();
 	}
 	
 	public OWLOntology toOWLSubClassOfAxiom(OWLOntology onto) throws OWLOntologyCreationException {
@@ -300,6 +359,28 @@ public class Converter {
 		} 
 
 		return Collections.emptySet();
+	}
+	public static  void main(String [] args){
+		Set<Formula> now = new LinkedHashSet<>();
+		Set<Formula> now2 =new LinkedHashSet<>();
+		now2.add(new AtomicConcept("A"));
+		now2.add(new AtomicConcept("B"));
+		And and = new And(now2);
+		Set<Formula> temp = new HashSet<>();
+		temp.add(and);
+		temp.add(new AtomicConcept("H"));
+		now.add(new Exists(new AtomicRole("r"),new And(temp)));
+		now.add(new AtomicConcept("C"));
+		System.out.println(now);
+
+		Formula temp2 = new Converter().RightSubformulaConverter(new And(now));
+		System.out.println(temp2);
+		System.out.println(temp2.getSubformulae());
+		for(Formula t : temp2.getSubformulae()){
+			if(t instanceof Exists){
+				System.out.println(t.getSubFormulas().get(1).getSubformulae());
+			}
+		}
 	}
 
 }

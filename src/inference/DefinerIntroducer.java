@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.*;
 
 import BackTrack.BackTrack;
+import checkTautology.TautologyChecker;
 import checkexistence.EChecker;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -24,13 +25,16 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 public class DefinerIntroducer {
 
 	public DefinerIntroducer() {
-
+		definer_left_map = new HashMap<>();
+		definer_left_map = new HashMap<>();
+		owldefiner_set = new LinkedHashSet<>();
+		definer_set = new LinkedHashSet<>();
 	}
 
-	public static Map<Formula, AtomicConcept> definer_left_map = new HashMap<>();
-	public static Map<Formula, AtomicConcept> definer_right_map = new HashMap<>();
-	public static Set<OWLEntity> owldefiner_set = new LinkedHashSet<>();
-	public static Set<AtomicConcept> definer_set = new LinkedHashSet<>();
+	public  Map<Formula, AtomicConcept> definer_left_map = new HashMap<>();
+	public  Map<Formula, AtomicConcept> definer_right_map = new HashMap<>();
+	public  Set<OWLEntity> owldefiner_set = new LinkedHashSet<>();
+	public  Set<AtomicConcept> definer_set = new LinkedHashSet<>();
 
 	public List<Formula> removeCyclicDefinition(AtomicConcept concept,List<Formula> beforeIntroDefiners){
 		FChecker fc = new FChecker();
@@ -54,12 +58,11 @@ public class DefinerIntroducer {
 
 			Formula formulaClone = formula.clone();
 			Formula outputFormula = formula.clone();
-
 			List<Formula> re = introduceDefiners(concept, formulaClone);
 
 			output_list.addAll(re);
 			if(re.size() <= 1) continue;
-			/*
+/*
 			for(Formula temp : re){
 
 				if(temp.toString().contains("Definer")){
@@ -67,7 +70,9 @@ public class DefinerIntroducer {
 				}
 			}
 
-			 */
+ */
+
+
 			System.out.println("original formla : " );
 			System.out.println(outputFormula+" "+concept);
 			System.out.println("after introduced :");
@@ -82,7 +87,7 @@ public class DefinerIntroducer {
 		return output_list;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args)throws Exception {
 		AtomicConcept a = new AtomicConcept("A");
 		AtomicConcept b = new AtomicConcept("B");
 		AtomicConcept c = new AtomicConcept("C");
@@ -113,15 +118,13 @@ public class DefinerIntroducer {
 
 	}
 
-	public List<Formula> introduceDefiners(AtomicConcept concept, Formula formula) {
-
+	public List<Formula> introduceDefiners(AtomicConcept concept, Formula formula) throws Exception{
 		List<Formula> output_list = new ArrayList<>();
 		EChecker ec = new EChecker();
 		FChecker fc = new FChecker();
 
 		Formula subsumee = formula.getSubFormulas().get(0);
 		Formula subsumer = formula.getSubFormulas().get(1);
-
 		int A_subsumee = fc.positive(concept, subsumee);
 		int A_subsumer = fc.positive(concept, subsumer);
 
@@ -136,12 +139,9 @@ public class DefinerIntroducer {
 		} else if (A_subsumee == 1 && A_subsumer == 0) {
 
 			if (subsumee instanceof Exists) {
-
 				Formula filler = subsumee.getSubFormulas().get(1);
-
 				if (filler instanceof Exists ||
 						(filler instanceof And && !filler.getSubformulae().contains(concept))) {
-
 					if (definer_right_map.get(filler) == null) {
 						AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
 						AtomicConcept.setDefiner_index(AtomicConcept.getDefiner_index() + 1);
@@ -151,7 +151,6 @@ public class DefinerIntroducer {
 						subsumee.getSubFormulas().set(1, definer);
 						output_list.add(formula);
 						output_list.addAll(introduceDefiners(concept, new Inclusion(filler, definer)));
-
 					} else {
 						AtomicConcept definer = definer_right_map.get(filler);
 						subsumee.getSubFormulas().set(1, definer);
@@ -237,12 +236,13 @@ public class DefinerIntroducer {
 
 				for (Formula conjunct : conjunct_set) {
 
-					if (ec.isPresent(concept, conjunct) && conjunct instanceof Exists) {
+					if (conjunct instanceof Exists && ec.isPresent(concept, conjunct) ) {
 
 						Formula filler = conjunct.getSubFormulas().get(1);
 
 						if (definer_right_map.get(filler) == null) {
 							AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
+
 							AtomicConcept.setDefiner_index(AtomicConcept.getDefiner_index() + 1);
 							definer_set.add(definer);
 							// owldefiner_set.add(bc.getClassfromConcept(definer));
@@ -356,7 +356,7 @@ public class DefinerIntroducer {
 					} else {
 						AtomicConcept definer = definer_left_map.get(subsumer);
 						formula.getSubFormulas().set(1, definer);
-						output_list.add(formula);
+                        output_list.add(formula);
 					}
 
 				}
@@ -458,7 +458,6 @@ public class DefinerIntroducer {
 			}
 ////////////////////////////////
 		} else if (A_subsumee > 1 && A_subsumer == 1) {
-
 			if (subsumee instanceof Exists) {
 
 				Formula filler = subsumee.getSubFormulas().get(1);
@@ -482,31 +481,40 @@ public class DefinerIntroducer {
 			} else if (subsumee instanceof And) {
 
 				Set<Formula> conjunct_set = subsumee.getSubformulae();
-
+				int tag = 0;
 				for (Formula conjunct : conjunct_set) {
 
-					if (ec.isPresent(concept, conjunct)) {
+					if (ec.isPresent(concept, conjunct) ) {
+						if(conjunct instanceof Exists) {//gaile
+							tag = 1;
+							Formula filler = conjunct.getSubFormulas().get(1);
 
-						Formula filler = conjunct.getSubFormulas().get(1);
+							if (definer_right_map.get(filler) == null) {
+								AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
+								AtomicConcept.setDefiner_index(AtomicConcept.getDefiner_index() + 1);
+								definer_set.add(definer);
+								// owldefiner_set.add(bc.getClassfromConcept(definer));
+								definer_right_map.put(filler, definer);
+								conjunct.getSubFormulas().set(1, definer);
+								System.out.println(formula+" // "+concept);
+								output_list.addAll(introduceDefiners(concept, formula));
+								output_list.addAll(introduceDefiners(concept, new Inclusion(filler, definer)));
+								break;
 
-						if (definer_right_map.get(filler) == null) {
-							AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
-							AtomicConcept.setDefiner_index(AtomicConcept.getDefiner_index() + 1);
-							definer_set.add(definer);
-							// owldefiner_set.add(bc.getClassfromConcept(definer));
-							definer_right_map.put(filler, definer);
-							conjunct.getSubFormulas().set(1, definer);
-							output_list.addAll(introduceDefiners(concept, formula));
-							output_list.addAll(introduceDefiners(concept, new Inclusion(filler, definer)));
-							break;
-
-						} else {
-							AtomicConcept definer = definer_right_map.get(filler);
-							conjunct.getSubFormulas().set(1, definer);
-							output_list.addAll(introduceDefiners(concept, formula));
-							break;
+							} else {
+								AtomicConcept definer = definer_right_map.get(filler);
+								conjunct.getSubFormulas().set(1, definer);
+								output_list.addAll(introduceDefiners(concept, formula));
+								break;
+							}
 						}
+
+
 					}
+				}
+				if(tag == 0){
+
+					throw new Exception();
 				}
 			}
 
@@ -553,6 +561,7 @@ public class DefinerIntroducer {
 						AtomicConcept definer = definer_left_map.get(filler);
 						subsumer.getSubFormulas().set(1, definer);
 						output_list.add(formula);
+
 					}
 				}
 			}
@@ -787,7 +796,8 @@ public class DefinerIntroducer {
 			List<Formula> re = introduceDefiners(role, formulaClone);
 
 			output_list.addAll(re);
-			if(re.size() <= 1) continue;
+
+			 if(re.size() <= 1) continue;
 
 /*
 			for(Formula temp : re){
@@ -798,13 +808,13 @@ public class DefinerIntroducer {
 			}
 
  */
+
+
 			System.out.println("original formla and role: " );
 			System.out.println(outputFormula+" "+role);
 			System.out.println("after introduced :");
 			for(Formula temp : re){
 				System.out.println(temp);
-				System.out.println(temp.getSubFormulas().get(0).getClass());
-				System.out.println(temp.getSubFormulas().get(1).getClass());
 
 			}
 			System.out.println("--------------------" );
@@ -872,7 +882,6 @@ public class DefinerIntroducer {
 				for (Formula conjunct : conjunct_set) {
 
 					if (ec.isPresent(role, conjunct)) {
-
 						Formula relation = conjunct.getSubFormulas().get(0);
 
 						if (!relation.equals(role)) {
@@ -936,9 +945,8 @@ public class DefinerIntroducer {
 				Set<Formula> conjunct_set = subsumee.getSubformulae();
 
 				for (Formula conjunct : conjunct_set) {
-
+/*
 					if (ec.isPresent(role, conjunct)) {
-
 						Formula filler = conjunct.getSubFormulas().get(1);
 
 						if (definer_right_map.get(filler) == null) {
@@ -948,6 +956,7 @@ public class DefinerIntroducer {
 							// owldefiner_set.add(bc.getClassfromConcept(definer));
 							definer_right_map.put(filler, definer);
 							conjunct.getSubFormulas().set(1, definer);
+							System.out.println(role+" "+formula);
 							output_list.addAll(introduceDefiners(role, formula));
 							output_list.addAll(introduceDefiners(role, new Inclusion(filler, definer)));
 							break;
@@ -959,6 +968,28 @@ public class DefinerIntroducer {
 							break;
 						}
 					}
+					*/
+                    if (ec.isPresent(role, conjunct)) {
+
+                        if (definer_right_map.get(conjunct) == null) {
+                            AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
+                            AtomicConcept.setDefiner_index(AtomicConcept.getDefiner_index() + 1);
+                            definer_set.add(definer);
+                            // owldefiner_set.add(bc.getClassfromConcept(definer));
+                            definer_right_map.put(conjunct, definer);
+                            conjunct.getSubFormulas().set(1, definer);
+                            System.out.println(role+" "+formula);
+                            output_list.addAll(introduceDefiners(role, formula));
+                            output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
+                            break;
+
+                        } else {
+                            AtomicConcept definer = definer_right_map.get(conjunct);
+                            conjunct.getSubFormulas().set(1, definer);
+                            output_list.addAll(introduceDefiners(role, formula));
+                            break;
+                        }
+                    }
 				}
 			}
 

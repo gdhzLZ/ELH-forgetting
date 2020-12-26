@@ -30,7 +30,7 @@ import java.util.*;
 
 public class showData {
     public void INIT(){
-        DefinerIntroducer.owldefiner_set = new LinkedHashSet<>();;
+        //DefinerIntroducer.owldefiner_set = new LinkedHashSet<>();;
         //DefinerIntroducer.definer_set = new HashSet<>();
     }
     public List<List> computingLDiff(String O2,String O1)
@@ -85,15 +85,16 @@ public class showData {
             if (!reasoner.isEntailed(axiom)) {
                 numc++;
                 manager.applyChange(new AddAxiom(witness_complete_onto, axiom));
-                compwitnessList.addAll(ct.AxiomConverter(axiom));///
+
+                compwitnessList.addAll(ct.AxiomsConverter(Collections.singleton((OWLLogicalAxiom)axiom)));///
                 if (onto_2.getAxioms().contains(axiom)) {
                     nume++;
                     manager.applyChange(new AddAxiom(witness_explicit_onto, axiom));
-                    exwitnessList.addAll(ct.AxiomConverter(axiom));/////
+                    exwitnessList.addAll(ct.AxiomsConverter(Collections.singleton((OWLLogicalAxiom)axiom)));/////
                 } else {
                     numi++;
                     manager.applyChange(new AddAxiom(witness_implicit_onto, axiom));
-                    imwitnessList.addAll(ct.AxiomConverter(axiom));/////
+                    imwitnessList.addAll(ct.AxiomsConverter(Collections.singleton((OWLLogicalAxiom)axiom)));/////
                 }
             }
         }

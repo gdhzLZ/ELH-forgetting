@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.*;
 
+import Test.TestForgetting;
 import checkTautology.TautologyChecker;
 import concepts.TopConcept;
 import javafx.util.*;
@@ -60,6 +61,7 @@ public class Forgetter {
 			List<Formula> pivot_list_normalised = null;
 			int i = 1;
 			for (AtomicRole role : r_sig) {
+
 				System.out.println("Forgetting Role [" + i + "] = " + role);
 				i++;
 				//if(!role.toString().contains("http://snomed.info/id/732945000")) continue;
@@ -178,8 +180,8 @@ public class Forgetter {
 			} while (true);
 			*/
 
-		if (!DefinerIntroducer.definer_set.isEmpty()) {
-			List<Formula> d_sig_list_normalised = se.getConceptSubset(DefinerIntroducer.definer_set, formula_list_normalised);
+		if (!di.definer_set.isEmpty()) {
+			List<Formula> d_sig_list_normalised = se.getConceptSubset(di.definer_set, formula_list_normalised);
 			List<Formula> pivot_list_normalised = null;
 			Set<AtomicConcept> definer_set = null;
 			List<Formula> forgetting_Definer_output = new ArrayList<>();
@@ -188,7 +190,7 @@ public class Forgetter {
 			//In case the results of contains this case. report!
 			int k = 1;
 			do {
-				if (DefinerIntroducer.definer_set.isEmpty()) {
+				if (di.definer_set.isEmpty()) {
 					System.out.println("Forgetting Successful!");
 					System.out.println("===================================================");
 					formula_list_normalised.addAll(d_sig_list_normalised);
@@ -196,45 +198,28 @@ public class Forgetter {
 					return formula_list_normalised;
 				}
 
-				definer_set = new LinkedHashSet<>(DefinerIntroducer.definer_set);
+				definer_set = new LinkedHashSet<>(di.definer_set);
 
 				for (AtomicConcept concept : definer_set) {
-					System.out.println("Forgetting Definer [" + k + "] = " + concept +" definer_set size :"+DefinerIntroducer.definer_set.size());
+					System.out.println("Forgetting Definer [" + k + "] = " + concept +" definer_set size :"+di.definer_set.size());
 					k++;
 					pivot_list_normalised = se.getConceptSubset(concept, d_sig_list_normalised);
 					if (pivot_list_normalised.isEmpty()) {
-						System.out.println("pivot_list_normalised is empty");
-						DefinerIntroducer.definer_set.remove(concept);
+						di.definer_set.remove(concept);
 
 					} else if (fc.positive(concept, pivot_list_normalised) == 0) {
-						System.out.println("purify 1 :" + concept);
-						System.out.println("the list:");
-						for(Formula i : pivot_list_normalised){
-							System.out.println(i);
-						}
+
 						List<Formula> ans = inf.Purify(concept, pivot_list_normalised);
-						System.out.println("after purify ");
-						for(Formula i : ans){
-							System.out.println(i);
-						}
+
 						d_sig_list_normalised.addAll(ans);
-						DefinerIntroducer.definer_set.remove(concept);
-						System.out.println("------------------1");
+						di.definer_set.remove(concept);
 
 					} else if (fc.negative(concept, pivot_list_normalised) == 0) {
-						System.out.println("purify 2:" + concept);
-						System.out.println("the list:");
-						for(Formula i : pivot_list_normalised){
-							System.out.println(i);
-						}
+
 						List<Formula> ans = inf.Purify(concept, pivot_list_normalised);
-						System.out.println("after purify ");
-						for(Formula i : ans){
-							System.out.println(i);
-						}
+
 						d_sig_list_normalised.addAll(ans);
-						DefinerIntroducer.definer_set.remove(concept);
-						System.out.println("---------------------2");
+						di.definer_set.remove(concept);
 
 					} else {
                         Set<Formula> beforeIntroDefiners = new LinkedHashSet<>(pivot_list_normalised);
@@ -242,6 +227,7 @@ public class Forgetter {
 						pivot_list_normalised = di.removeCyclicDefinition(concept,pivot_list_normalised);
 						int length2 = pivot_list_normalised.size();
 						if(length1 != length2){
+							TestForgetting.isExtra = 1;
 							System.out.println("There is extra expressivity !");
 						}
                         pivot_list_normalised = di.introduceDefiners(concept, pivot_list_normalised);
@@ -253,7 +239,7 @@ public class Forgetter {
                         manager.addAxioms(onto,containNewDefinersSet);
 						pivot_list_normalised = inf.combination_A(concept, pivot_list_normalised, onto);
 						d_sig_list_normalised.addAll(pivot_list_normalised);
-						DefinerIntroducer.definer_set.remove(concept);
+						di.definer_set.remove(concept);
 
 					}
 				}
@@ -274,7 +260,7 @@ public class Forgetter {
 		return formula_list_normalised;
 	}
 	public static void main(String [] args) throws  Exception {
-		/*
+
 		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
 
         Formula CA= new Inclusion(new AtomicConcept("C"),new AtomicConcept("A"));
@@ -317,31 +303,11 @@ public class Forgetter {
 		}
         System.out.println(n);
 
-		 */
 
 
 
 
-		Formula f1 = new Inclusion(new AtomicConcept("A"),new AtomicConcept("H"));
-		Set<Formula> AandB = new LinkedHashSet<>();
-		AandB.add(new AtomicConcept("A"));AandB.add(new AtomicConcept("B"));
-		And and = new And(AandB);
 
-		Set<Formula> AandC = new LinkedHashSet<>();
-		AandC.add(new AtomicConcept("A"));AandC.add(new AtomicConcept("C"));
-		And and2 = new And(AandC);
-		Formula f2 = new Inclusion(new AtomicConcept("A"),new Exists(new AtomicRole("r"),new AtomicConcept("A")));
-		Forgetter fg = new Forgetter();
-		Set<AtomicConcept> c_sig = new LinkedHashSet<>();
-		c_sig.add(new AtomicConcept("A"));
-		BackConverter bc = new BackConverter();
-		List<Formula> formula_list_normalised = new ArrayList<>();
-		formula_list_normalised.add(f1);		formula_list_normalised.add(f2);
-
-		OWLOntology onto = bc.toOWLOntology(new ArrayList<>(formula_list_normalised));
-		System.out.println(formula_list_normalised);
-		List<Formula> ui = fg.Forgetting(new LinkedHashSet<>(),c_sig,formula_list_normalised,onto);
-		System.out.println(ui);
 
 
 	}
