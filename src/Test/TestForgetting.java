@@ -190,15 +190,16 @@ public class TestForgetting {
     public static void test2(String dictPath)throws Exception{
         ArrayList<String> hasRecord = readFile.readFile(dictPath+"log.txt");
 
-        //String title = "fileName,LogicalAxiomsSize,RolesSize,ConceptsSize,GCISize,GCIRolesSize,GCIConceptSize,isTestGCIForgetting,rate,time,timeOut,MemoryOut," +"isSuccess,isExtra,afterForgettingAxiomsSize\n";
-        //writeFile.writeFile(dictPath+"log.txt",title);
+        String title = "fileName,LogicalAxiomsSize,RolesSize,ConceptsSize,GCISize,GCIRolesSize,GCIConceptSize,isTestGCIForgetting,rate,time,timeOut,MemoryOut," +"isSuccess,isExtra,afterForgettingAxiomsSize\n";
+        writeFile.writeFile(dictPath+"log.txt",title);
         Converter ct = new Converter();
         BackConverter bc = new BackConverter();
-        int circle = 10;
+        int circle = 5;
         int isTestGCIForgetting = 0;
         ArrayList<String> now = getFileName(dictPath);
-        double []rates = new double[]{0.1,0.3,0.5,0.7};
+        double []rates = new double[]{0.1};
         for(String path : now){
+
             int hasRead = 0;
             for(String temp : hasRecord) {
                 if (temp.contains(path)) {
@@ -207,6 +208,7 @@ public class TestForgetting {
                 }
             }
             if(hasRead == 1) continue;
+
             if(!path.contains(".owl")) continue;
             OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
             onto = manager1.loadOntologyFromOntologyDocument(new File(path));
@@ -255,6 +257,7 @@ public class TestForgetting {
                     isExtra = 0;
                     success = 1;
                     elkEntailment.hasChecked_OnO2 = new HashMap<>();
+                    AtomicConcept.setDefiner_index(1);
                     System.out.println("forgetting roles :"+(int) (rate * rolesize));
                     System.out.println("forgetting concepts :"+(int) (rate * conceptsize));
 
@@ -264,7 +267,7 @@ public class TestForgetting {
                     SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager1, onto, ModuleType.BOT);
                     Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(Sets.difference(onto.getSignature(), forgettingSignatures));
                     Set<OWLLogicalAxiom> moduleOnto_2OnCommonSig_logical = new HashSet<>();
-
+                    System.out.println("module finished");
                     for (OWLAxiom axiom : moduleOnto_2OnForgettingSig) {
                         if (axiom instanceof OWLLogicalAxiom) {
                             moduleOnto_2OnCommonSig_logical.add((OWLLogicalAxiom) axiom);
@@ -280,6 +283,7 @@ public class TestForgetting {
                             try {
                                 long time1 = System.currentTimeMillis();
                                 List<Formula> ui = fg.Forgetting(roleSet, conceptSet, formulaList, onto);
+                                //elkEntailment.check(onto,ui);
                                 long time2 = System.currentTimeMillis();
                                 afterForgettingAxiomsSize += ui.size();
                                 time += (time2 - time1);
@@ -290,15 +294,15 @@ public class TestForgetting {
 
                                 success = 0;
                             }
-/*
+
                             catch (StackOverflowError e){
-                                nowLog = nowLog+",0,0,1,0,0,0\n";
+                                nowLog = nowLog+",0,0,2,0,0,0\n";
                                 writeFile.writeFile(dictPath+"log.txt",nowLog);
-                                System.err.println("timeout");
+                                System.err.println("stackoverflow");
                                 success = 0;
                             }
 
- */
+
                             return 1;
                         }
                     };
@@ -308,7 +312,14 @@ public class TestForgetting {
                         int t = future.get(1000 * 1200,TimeUnit.MILLISECONDS);
                     }
 
+                    catch (OutOfMemoryError e){
+                        nowLog = nowLog+",0,0,1,0,0,0\n";
+                        writeFile.writeFile(dictPath+"log.txt",nowLog);
+                        System.err.println("outofmemory2");
 
+                        success = 0;
+                        break;
+                    }
                     catch (TimeoutException e){
                         nowLog = nowLog+",0,1,0,0,0,0\n";
                         writeFile.writeFile(dictPath+"log.txt",nowLog);
@@ -317,7 +328,7 @@ public class TestForgetting {
                         break;
                     }
 
-                    if(success == 0 || isExtra == 1) break;
+                    if(success == 0 || isExtra != 0) break;
 
                 }
                 if(success == 1 && isExtra == 0){
@@ -326,8 +337,8 @@ public class TestForgetting {
 
 
                 }
-                if(success == 1 && isExtra == 1){
-                    nowLog = nowLog+",,0,0,0,0,1,0\n";
+                if(success == 1 && isExtra != 0){
+                    nowLog = nowLog+",0,0,0,0,"+isExtra+",0\n";
                     writeFile.writeFile(dictPath+"log.txt",nowLog);
                 }
             }

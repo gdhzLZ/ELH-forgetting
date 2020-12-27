@@ -115,7 +115,15 @@ public class DefinerIntroducer {
 		System.out.println("result2 = " + result2);
 		System.out.println("result2 = " + inc3);
 
+        Set<Formula> now = new HashSet<>();
+        now.add(new AtomicConcept("A"));
+        now.add(new AtomicConcept("B"));
+        And n = new And(now);
+        System.out.println(n.hashCode());
+        n.getSubformulae().remove(new AtomicConcept("A"));
+        n.getSubformulae().add(new AtomicConcept("C"));
 
+        System.out.println(n.hashCode());
 	}
 
 	public List<Formula> introduceDefiners(AtomicConcept concept, Formula formula) throws Exception{
@@ -496,7 +504,7 @@ public class DefinerIntroducer {
 								// owldefiner_set.add(bc.getClassfromConcept(definer));
 								definer_right_map.put(filler, definer);
 								conjunct.getSubFormulas().set(1, definer);
-								System.out.println(formula+" // "+concept);
+								//System.out.println(formula+" // "+concept);
 								output_list.addAll(introduceDefiners(concept, formula));
 								output_list.addAll(introduceDefiners(concept, new Inclusion(filler, definer)));
 								break;
@@ -977,8 +985,10 @@ public class DefinerIntroducer {
                             definer_set.add(definer);
                             // owldefiner_set.add(bc.getClassfromConcept(definer));
                             definer_right_map.put(conjunct, definer);
-                            conjunct.getSubFormulas().set(1, definer);
-                            System.out.println(role+" "+formula);
+                            subsumee.getSubformulae().remove(conjunct);
+                            subsumee.getSubformulae().add(definer);
+                            //conjunct.getSubFormulas().set(1, definer);
+
                             output_list.addAll(introduceDefiners(role, formula));
                             output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
                             break;
@@ -1070,6 +1080,7 @@ public class DefinerIntroducer {
 						formula.getSubFormulas().set(1, definer);
 						output_list.add(formula);
 						output_list.addAll(introduceDefiners(role, new Inclusion(definer, subsumer)));
+
 
 					} else {
 						AtomicConcept definer = definer_left_map.get(subsumer);
@@ -1167,7 +1178,7 @@ public class DefinerIntroducer {
 				for (Formula conjunct : conjunct_set) {
 
 					if (ec.isPresent(role, conjunct)) {
-
+/*
 						Formula filler = conjunct.getSubFormulas().get(1);
 
 						if (definer_right_map.get(filler) == null) {
@@ -1187,6 +1198,29 @@ public class DefinerIntroducer {
 							output_list.addAll(introduceDefiners(role, formula));
 							break;
 						}
+
+ */
+
+                    if (definer_right_map.get(conjunct) == null) {
+                        AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
+                        AtomicConcept.setDefiner_index(AtomicConcept.getDefiner_index() + 1);
+                        definer_set.add(definer);
+                        // owldefiner_set.add(bc.getClassfromConcept(definer));
+                        definer_right_map.put(conjunct, definer);
+                        subsumee.getSubformulae().remove(conjunct);
+                        subsumee.getSubformulae().add(definer);
+                        //conjunct.getSubFormulas().set(1, definer);
+
+                        output_list.addAll(introduceDefiners(role, formula));
+                        output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
+                        break;
+
+                    } else {
+                        AtomicConcept definer = definer_right_map.get(conjunct);
+                        conjunct.getSubFormulas().set(1, definer);
+                        output_list.addAll(introduceDefiners(role, formula));
+                        break;
+                    }
 					}
 				}
 			}
@@ -1352,8 +1386,9 @@ public class DefinerIntroducer {
 				for (Formula conjunct : conjunct_set) {
 
 					if (ec.isPresent(role, conjunct)) {
-
+/*
 						Formula filler = conjunct.getSubFormulas().get(1);
+
 
 						if (definer_right_map.get(filler) == null) {
 							AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
@@ -1372,6 +1407,27 @@ public class DefinerIntroducer {
 							output_list.addAll(introduceDefiners(role, formula));
 							break;
 						}
+
+ */
+                        if (definer_right_map.get(conjunct) == null) {
+                            AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
+                            AtomicConcept.setDefiner_index(AtomicConcept.getDefiner_index() + 1);
+                            definer_set.add(definer);
+                            // owldefiner_set.add(bc.getClassfromConcept(definer));
+                            definer_right_map.put(conjunct, definer);
+                            subsumee.getSubformulae().remove(conjunct);
+                            subsumee.getSubformulae().add(definer);
+                            //conjunct.getSubFormulas().set(1, definer);
+                            output_list.addAll(introduceDefiners(role, formula));
+                            output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
+                            break;
+
+                        } else {
+                            AtomicConcept definer = definer_right_map.get(conjunct);
+                            conjunct.getSubFormulas().set(1, definer);
+                            output_list.addAll(introduceDefiners(role, formula));
+                            break;
+                        }
 					}
 				}
 			}
@@ -1382,5 +1438,6 @@ public class DefinerIntroducer {
 
 		return output_list;
 	}
+
 
 }

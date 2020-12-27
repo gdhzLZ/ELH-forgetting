@@ -73,9 +73,10 @@ public class elkEntailment {
         int len = uniform_interpolant.size();
         for(Formula formula : uniform_interpolant){
             OWLAxiom axiom = bc.toOWLAxiom(formula);
-            if(!entailed(reasoner,axiom,2)){
+            if(!entailed(reasoner,axiom,1)){
                 System.out.println("Unexpected Axiom: " + formula +" "+ TestForgetting.isExtra );
-                BackTrack.getInferencePath(formula);
+                throw new Exception("unexpected");
+               // BackTrack.getInferencePath(formula);
 
             }
             else{

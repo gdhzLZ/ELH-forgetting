@@ -154,7 +154,6 @@ public class Inferencer {
 		//1
 		int time  = 0;
 		for (Formula ps_premise : positive_star_premises) {
-			System.out.println(ps_premise +" "+negative_star_and_premises.size()+" "+positive_star_premises.size() +" "+ time);
 			time++;
 
 			Formula subsumee = ps_premise.getSubFormulas().get(0);
@@ -167,6 +166,9 @@ public class Inferencer {
 			for (Formula nsa_premise : negative_star_and_premises) {
 				Formula temp = AckermannReplace(concept, nsa_premise, subsumee);
 				if(!tc.isTautology(temp)) output_list.add(temp);
+				//System.out.println(concept+" "+ps_premise +" "+negative_star_and_premises.size()+" "+positive_star_premises.size() +" "+ time);
+				//System.out.println(nsa_premise);
+
 				//BackTrack.addFatherHash(temp.clone(),ps_premise.clone(),nsa_premise.clone(),4);
 			}
 

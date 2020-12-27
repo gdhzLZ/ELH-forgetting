@@ -189,6 +189,7 @@ public class Forgetter {
 			////this is the case of the cyclic cases, that's why the ACK_A is not re-used.
 			//In case the results of contains this case. report!
 			int k = 1;
+			int num = 0;
 			do {
 				if (di.definer_set.isEmpty()) {
 					System.out.println("Forgetting Successful!");
@@ -201,6 +202,7 @@ public class Forgetter {
 				definer_set = new LinkedHashSet<>(di.definer_set);
 
 				for (AtomicConcept concept : definer_set) {
+					num++;
 					System.out.println("Forgetting Definer [" + k + "] = " + concept +" definer_set size :"+di.definer_set.size());
 					k++;
 					pivot_list_normalised = se.getConceptSubset(concept, d_sig_list_normalised);
@@ -243,7 +245,11 @@ public class Forgetter {
 
 					}
 				}
-
+				if(num > 30000){
+					TestForgetting.isExtra = 2;
+					System.out.println("There is extra expressivity !");
+					break;
+				}
 			} while (true);
 
 
