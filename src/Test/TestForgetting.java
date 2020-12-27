@@ -189,7 +189,7 @@ public class TestForgetting {
 
     public static void test2(String dictPath)throws Exception{
         double Rate = 0.3;
-        String filelog = "log"+Rate+".txt";
+        String filelog = "log"+Rate+"_2.txt";
         ArrayList<String> hasRecord = readFile.readFile(dictPath+filelog);
 
         String title = "fileName,LogicalAxiomsSize,RolesSize,ConceptsSize,GCISize,GCIRolesSize,GCIConceptSize,isTestGCIForgetting,rate,time,timeOut,MemoryOut," +"isSuccess,isExtra,afterForgettingAxiomsSize\n";
@@ -210,7 +210,7 @@ public class TestForgetting {
                 }
             }
             if(hasRead == 1) continue;
-
+            //if(hasRead != 1) continue;
             if(!path.contains(".owl")) continue;
             OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
             onto = manager1.loadOntologyFromOntologyDocument(new File(path));
@@ -303,6 +303,8 @@ public class TestForgetting {
                                 System.err.println("stackoverflow");
                                 success = 0;
                             }
+
+
 
 
                             return 1;

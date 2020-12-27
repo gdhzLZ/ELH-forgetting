@@ -224,7 +224,7 @@ public class Forgetter {
 						di.definer_set.remove(concept);
 
 					} else {
-                        Set<Formula> beforeIntroDefiners = new LinkedHashSet<>(pivot_list_normalised);
+						/*
                         int length1 = pivot_list_normalised.size();
 						pivot_list_normalised = di.removeCyclicDefinition(concept,pivot_list_normalised);
 						int length2 = pivot_list_normalised.size();
@@ -232,7 +232,10 @@ public class Forgetter {
 							TestForgetting.isExtra = 1;
 							System.out.println("There is extra expressivity !");
 						}
-                        pivot_list_normalised = di.introduceDefiners(concept, pivot_list_normalised);
+
+						 */
+						Set<Formula> beforeIntroDefiners = new LinkedHashSet<>(pivot_list_normalised);
+						pivot_list_normalised = di.introduceDefiners(concept, pivot_list_normalised);
                         Set<Formula> afterIntroDefiners = new LinkedHashSet<>(pivot_list_normalised);
                         Set<OWLAxiom> containNewDefinersSet = new LinkedHashSet<>();
                         for(Formula formula :  Sets.difference(afterIntroDefiners,beforeIntroDefiners)){
@@ -245,8 +248,8 @@ public class Forgetter {
 
 					}
 				}
-				if(num > 30000){
-					TestForgetting.isExtra = 2;
+				if(num > 12000){
+					TestForgetting.isExtra = 1;
 					System.out.println("There is extra expressivity !");
 					break;
 				}

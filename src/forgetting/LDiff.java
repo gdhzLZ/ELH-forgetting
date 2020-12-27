@@ -209,7 +209,7 @@ public class LDiff {
 		System.out.println("c_sig_2 size = " + onto_2.getClassesInSignature().size());
 		System.out.println("r_sig_2 size = " + onto_2.getObjectPropertiesInSignature().size());
 		long startTime1 = System.currentTimeMillis(); LDiff diff = new LDiff();
-		diff.compute_LDiff(onto_2, onto_1,  "/Users/liuzhao/Desktop/experiments/diff/0107");
+		diff.compute_LDiff(onto_1, onto_2,  "/Users/liuzhao/Desktop/experiments/diff/0107");
 		long endTime1 = System.currentTimeMillis();
 		System.out.println("Total Duration = " + (endTime1 - startTime1) + "millis");
 

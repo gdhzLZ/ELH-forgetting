@@ -126,7 +126,8 @@ public class DefinerIntroducer {
         System.out.println(n.hashCode());
 	}
 
-	public List<Formula> introduceDefiners(AtomicConcept concept, Formula formula) throws Exception{
+	public List<Formula> introduceDefiners(AtomicConcept concept, Formula formula1) throws Exception{
+		Formula formula = formula1.clone();
 		List<Formula> output_list = new ArrayList<>();
 		EChecker ec = new EChecker();
 		FChecker fc = new FChecker();
@@ -833,8 +834,8 @@ public class DefinerIntroducer {
 
 	}
 
-	public List<Formula> introduceDefiners(AtomicRole role, Formula formula) {
-
+	public List<Formula> introduceDefiners(AtomicRole role, Formula formula1)throws Exception {
+		Formula formula = formula1.clone();
 		List<Formula> output_list = new ArrayList<>();
 		EChecker ec = new EChecker();
 		FChecker fc = new FChecker();
@@ -950,9 +951,8 @@ public class DefinerIntroducer {
 
 			} else if (subsumee instanceof And) {
 
-				Set<Formula> conjunct_set = subsumee.getSubformulae();
 
-				for (Formula conjunct : conjunct_set) {
+				for (Formula conjunct : subsumee.getSubformulae()) {
 /*
 					if (ec.isPresent(role, conjunct)) {
 						Formula filler = conjunct.getSubFormulas().get(1);
@@ -977,7 +977,8 @@ public class DefinerIntroducer {
 						}
 					}
 					*/
-                    if (ec.isPresent(role, conjunct)) {
+
+					if (ec.isPresent(role, conjunct)) {
 
                         if (definer_right_map.get(conjunct) == null) {
                             AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
@@ -985,6 +986,7 @@ public class DefinerIntroducer {
                             definer_set.add(definer);
                             // owldefiner_set.add(bc.getClassfromConcept(definer));
                             definer_right_map.put(conjunct, definer);
+
                             subsumee.getSubformulae().remove(conjunct);
                             subsumee.getSubformulae().add(definer);
                             //conjunct.getSubFormulas().set(1, definer);

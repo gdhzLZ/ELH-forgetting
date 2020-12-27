@@ -221,7 +221,6 @@ public class Inferencer {
 				}
 				if(!tc.isTautology(temp)) output_list.add(temp);
 
-
 			}
 			//2 5
 			for(Formula nsa_premise :negative_star_and_premises){
