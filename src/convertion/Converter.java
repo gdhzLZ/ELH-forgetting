@@ -297,15 +297,7 @@ public class Converter {
 
 				Formula temp = ClassExpressionConverter(conjunct);
 				if(temp == null) return null;
-				try {
-					if (temp instanceof And) throw new Exception("enne ");
-				}
-				catch (Exception e){
-					System.out.println("ggg "+temp+" "+(temp instanceof And)+" "+conjunct.getClass());
-					System.out.println(owlOIO);
-					System.out.println( owlOIO.getOperands());
 
-				}
 				conjunct_set.add(temp);
 
 			}

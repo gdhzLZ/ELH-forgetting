@@ -188,16 +188,18 @@ public class TestForgetting {
     public static String nowLog = null;
 
     public static void test2(String dictPath)throws Exception{
-        ArrayList<String> hasRecord = readFile.readFile(dictPath+"log.txt");
+        double Rate = 0.3;
+        String filelog = "log"+Rate+".txt";
+        ArrayList<String> hasRecord = readFile.readFile(dictPath+filelog);
 
         String title = "fileName,LogicalAxiomsSize,RolesSize,ConceptsSize,GCISize,GCIRolesSize,GCIConceptSize,isTestGCIForgetting,rate,time,timeOut,MemoryOut," +"isSuccess,isExtra,afterForgettingAxiomsSize\n";
-        writeFile.writeFile(dictPath+"log.txt",title);
+        writeFile.writeFile(dictPath+filelog,title);
         Converter ct = new Converter();
         BackConverter bc = new BackConverter();
         int circle = 5;
         int isTestGCIForgetting = 0;
         ArrayList<String> now = getFileName(dictPath);
-        double []rates = new double[]{0.1};
+        double []rates = new double[]{Rate};
         for(String path : now){
 
             int hasRead = 0;
@@ -289,7 +291,7 @@ public class TestForgetting {
                                 time += (time2 - time1);
                             } catch (OutOfMemoryError e){
                                 nowLog = nowLog+",0,0,1,0,0,0\n";
-                                writeFile.writeFile(dictPath+"log.txt",nowLog);
+                                writeFile.writeFile(dictPath+filelog,nowLog);
                                 System.err.println("outofmemory");
 
                                 success = 0;
@@ -297,7 +299,7 @@ public class TestForgetting {
 
                             catch (StackOverflowError e){
                                 nowLog = nowLog+",0,0,2,0,0,0\n";
-                                writeFile.writeFile(dictPath+"log.txt",nowLog);
+                                writeFile.writeFile(dictPath+filelog,nowLog);
                                 System.err.println("stackoverflow");
                                 success = 0;
                             }
@@ -314,7 +316,7 @@ public class TestForgetting {
 
                     catch (OutOfMemoryError e){
                         nowLog = nowLog+",0,0,1,0,0,0\n";
-                        writeFile.writeFile(dictPath+"log.txt",nowLog);
+                        writeFile.writeFile(dictPath+filelog,nowLog);
                         System.err.println("outofmemory2");
 
                         success = 0;
@@ -322,7 +324,7 @@ public class TestForgetting {
                     }
                     catch (TimeoutException e){
                         nowLog = nowLog+",0,1,0,0,0,0\n";
-                        writeFile.writeFile(dictPath+"log.txt",nowLog);
+                        writeFile.writeFile(dictPath+filelog,nowLog);
                         System.err.println("timeout");
                         success = 0;
                         break;
@@ -333,16 +335,16 @@ public class TestForgetting {
                 }
                 if(success == 1 && isExtra == 0){
                     nowLog = nowLog+","+time*1.0/circle+",0,0,1,0,"+afterForgettingAxiomsSize/circle+"\n";
-                    writeFile.writeFile(dictPath+"log.txt",nowLog);
+                    writeFile.writeFile(dictPath+filelog,nowLog);
 
 
                 }
                 if(success == 1 && isExtra != 0){
                     nowLog = nowLog+",0,0,0,0,"+isExtra+",0\n";
-                    writeFile.writeFile(dictPath+"log.txt",nowLog);
+                    writeFile.writeFile(dictPath+filelog,nowLog);
                 }
             }
-
+            System.gc();
         }
     }
     public static void main(String[] args)throws Exception{

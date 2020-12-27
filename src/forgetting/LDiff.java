@@ -64,15 +64,16 @@ public class LDiff {
         forgettingSignatures.addAll(c_sig);
         // Extract module to speed our tool
 		SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, onto_2, ModuleType.BOT);
-		Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(Sets.difference(onto_2.getSignature(),forgettingSignatures));
-		Set<OWLLogicalAxiom>moduleOnto_2OnCommonSig_logical = new HashSet<>();
+		//Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(Sets.difference(onto_2.getSignature(),forgettingSignatures));
+		Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(forgettingSignatures);
+		Set<OWLLogicalAxiom>moduleOnto_2_OnCommonSig_logical = new HashSet<>();
 
 		for(OWLAxiom axiom : moduleOnto_2OnForgettingSig){
 			if(axiom instanceof OWLLogicalAxiom){
-				moduleOnto_2OnCommonSig_logical.add((OWLLogicalAxiom)axiom);
+				moduleOnto_2_OnCommonSig_logical.add((OWLLogicalAxiom)axiom);
 			}
 		}
-		System.out.println("module size "+moduleOnto_2OnCommonSig_logical.size()+"  o2 size "+ onto_2.getLogicalAxioms().size());
+		System.out.println("module size "+moduleOnto_2_OnCommonSig_logical.size()+"  o2 size "+ onto_2.getLogicalAxioms().size());
 
 
 		Converter ct = new Converter();
@@ -83,7 +84,7 @@ public class LDiff {
 		Set<AtomicConcept> concept_set = ct.getConceptsfromClasses(c_sig);
 
 		//List<Formula> formula_list = ct.AxiomsConverter(moduleOnto_2OnCommonSig_logical_temp);
-		List<Formula> formula_list = ct.AxiomsConverter(moduleOnto_2OnCommonSig_logical);
+		List<Formula> formula_list = ct.AxiomsConverter(moduleOnto_2_OnCommonSig_logical);
 
 		System.out.println("The forgetting task is to eliminate [" + concept_set.size() + "] concept names and ["
 				+ role_set.size() + "] role names from [" + formula_list.size() + "] normalized axioms");
@@ -95,7 +96,7 @@ public class LDiff {
 		System.out.println("Forgetting Duration = " + (endTime_1 - startTime_1) + " millis");
 
 		saveUI(uniform_interpolant,path+"/ui.owl");
-		//elkEntailment.check(onto_2,uniform_interpolantList);
+		elkEntailment.check(onto_2,uniform_interpolantList);
 
 		System.out.println("ui size = " + uniform_interpolant.size());
 
@@ -196,14 +197,14 @@ public class LDiff {
 		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
 
 		System.out.println("Onto_1 Path: ");
-		String filePath1 ="/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170131.owl/snomed_ct_intl_20170131.owl";
+		String filePath1 ="/Users/liuzhao/Desktop/MRI-signature.owl_sct-International-2020-07-31.owl_20200731-subontology-v.14.7.owl";
 		OWLOntology onto_1 = manager1.loadOntologyFromOntologyDocument(new File(filePath1));
 		System.out.println("onto_1 size = " + onto_1.getLogicalAxiomCount());
 		System.out.println("c_sig_1 size = " + onto_1.getClassesInSignature().size());
 		System.out.println("r_sig_1 size = " + onto_1.getObjectPropertiesInSignature().size());
 		OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
 		System.out.println("Onto_2 Path: ");
-		String filePath2 ="/Users/liuzhao/nju/NCBO/data/snomedcttest/snomed_ct_intl_20170731.owl/snomed_ct_intl_20170731.owl";
+		String filePath2 ="/Users/liuzhao/Desktop/MRI-signature.owl_sct_intl_20200131.owl_20200131-subontology-v.14.7.owl";
 		OWLOntology onto_2 = manager2.loadOntologyFromOntologyDocument(new File(filePath2));
 		System.out.println("onto_2 size = " + onto_2.getLogicalAxiomCount());
 		System.out.println("c_sig_2 size = " + onto_2.getClassesInSignature().size());
