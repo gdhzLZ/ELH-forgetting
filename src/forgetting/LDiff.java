@@ -62,10 +62,9 @@ public class LDiff {
 		Set<OWLEntity> forgettingSignatures = new HashSet<>();
         forgettingSignatures.addAll(r_sig);
         forgettingSignatures.addAll(c_sig);
-        // Extract module to speed our tool
+        // Extract module to speed our tool on common signature.
 		SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager, onto_2, ModuleType.BOT);
-		//Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(Sets.difference(onto_2.getSignature(),forgettingSignatures));
-		Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(forgettingSignatures);
+		Set<OWLAxiom> moduleOnto_2OnForgettingSig = extractor.extract(Sets.difference(onto_2.getSignature(),forgettingSignatures));
 		Set<OWLLogicalAxiom>moduleOnto_2_OnCommonSig_logical = new HashSet<>();
 
 		for(OWLAxiom axiom : moduleOnto_2OnForgettingSig){
@@ -197,20 +196,20 @@ public class LDiff {
 		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
 
 		System.out.println("Onto_1 Path: ");
-		String filePath1 ="/Users/liuzhao/Desktop/MRI-signature.owl_sct-International-2020-07-31.owl_20200731-subontology-v.14.7.owl";
+		String filePath1 ="/Users/liuzhao/Desktop/MRI-signature.owl_sct_intl_20200131.owl_20200131-subontology-v.14.7.owl";
 		OWLOntology onto_1 = manager1.loadOntologyFromOntologyDocument(new File(filePath1));
 		System.out.println("onto_1 size = " + onto_1.getLogicalAxiomCount());
 		System.out.println("c_sig_1 size = " + onto_1.getClassesInSignature().size());
 		System.out.println("r_sig_1 size = " + onto_1.getObjectPropertiesInSignature().size());
 		OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
 		System.out.println("Onto_2 Path: ");
-		String filePath2 ="/Users/liuzhao/Desktop/MRI-signature.owl_sct_intl_20200131.owl_20200131-subontology-v.14.7.owl";
+		String filePath2 ="/Users/liuzhao/Desktop/MRI-signature.owl_sct-International-2020-07-31.owl_20200731-subontology-v.14.7.owl";
 		OWLOntology onto_2 = manager2.loadOntologyFromOntologyDocument(new File(filePath2));
 		System.out.println("onto_2 size = " + onto_2.getLogicalAxiomCount());
 		System.out.println("c_sig_2 size = " + onto_2.getClassesInSignature().size());
 		System.out.println("r_sig_2 size = " + onto_2.getObjectPropertiesInSignature().size());
 		long startTime1 = System.currentTimeMillis(); LDiff diff = new LDiff();
-		diff.compute_LDiff(onto_1, onto_2,  "/Users/liuzhao/Desktop/experiments/diff/0107");
+		diff.compute_LDiff(onto_2, onto_1,  "/Users/liuzhao/Desktop/experiments/diff/0107");
 		long endTime1 = System.currentTimeMillis();
 		System.out.println("Total Duration = " + (endTime1 - startTime1) + "millis");
 
