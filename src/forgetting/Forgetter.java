@@ -48,7 +48,6 @@ public class Forgetter {
         OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
         OWLOntology onto = manager.createOntology(onto2.getAxioms());// it is a copy of onto2
 
-
 		DefinerIntroducer di = new DefinerIntroducer();
 		//Simplifier pp = new Simplifier();
 		SubsetExtractor se = new SubsetExtractor();
@@ -248,7 +247,7 @@ public class Forgetter {
 
 					}
 				}
-				if(num > 12000){
+				if(num > 10000){
 					TestForgetting.isExtra = 1;
 					System.out.println("There is extra expressivity !");
 					break;

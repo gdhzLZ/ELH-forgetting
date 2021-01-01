@@ -88,6 +88,7 @@ public class LDiff {
 		System.out.println("The forgetting task is to eliminate [" + concept_set.size() + "] concept names and ["
 				+ role_set.size() + "] role names from [" + formula_list.size() + "] normalized axioms");
 
+
 		long startTime_1 = System.currentTimeMillis();
 		List<Formula> uniform_interpolantList = forgetter.Forgetting(role_set, concept_set, formula_list, onto_2);
 		Set<OWLAxiom> uniform_interpolant = bc.toOWLAxioms(uniform_interpolantList);
@@ -196,14 +197,14 @@ public class LDiff {
 		OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
 
 		System.out.println("Onto_1 Path: ");
-		String filePath1 ="/Users/liuzhao/Desktop/MRI-signature.owl_sct_intl_20200131.owl_20200131-subontology-v.14.7.owl";
+		String filePath1 ="/Users/liuzhao/Desktop/snomed_ct_intl_20170131.owl";
 		OWLOntology onto_1 = manager1.loadOntologyFromOntologyDocument(new File(filePath1));
 		System.out.println("onto_1 size = " + onto_1.getLogicalAxiomCount());
 		System.out.println("c_sig_1 size = " + onto_1.getClassesInSignature().size());
 		System.out.println("r_sig_1 size = " + onto_1.getObjectPropertiesInSignature().size());
 		OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
 		System.out.println("Onto_2 Path: ");
-		String filePath2 ="/Users/liuzhao/Desktop/MRI-signature.owl_sct-International-2020-07-31.owl_20200731-subontology-v.14.7.owl";
+		String filePath2 ="/Users/liuzhao/Desktop/snomed_ct_intl_20170731.owl";
 		OWLOntology onto_2 = manager2.loadOntologyFromOntologyDocument(new File(filePath2));
 		System.out.println("onto_2 size = " + onto_2.getLogicalAxiomCount());
 		System.out.println("c_sig_2 size = " + onto_2.getClassesInSignature().size());

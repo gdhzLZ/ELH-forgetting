@@ -801,7 +801,6 @@ public class DefinerIntroducer {
 
 			Formula formulaClone = formula.clone();
 			Formula outputFormula = formula.clone();
-
 			List<Formula> re = introduceDefiners(role, formulaClone);
 
 			output_list.addAll(re);
@@ -951,7 +950,6 @@ public class DefinerIntroducer {
 
 			} else if (subsumee instanceof And) {
 
-
 				for (Formula conjunct : subsumee.getSubformulae()) {
 /*
 					if (ec.isPresent(role, conjunct)) {
@@ -984,20 +982,23 @@ public class DefinerIntroducer {
                             AtomicConcept definer = new AtomicConcept("Definer" + AtomicConcept.getDefiner_index());
                             AtomicConcept.setDefiner_index(AtomicConcept.getDefiner_index() + 1);
                             definer_set.add(definer);
-                            // owldefiner_set.add(bc.getClassfromConcept(definer));
+							// owldefiner_set.add(bc.getClassfromConcept(definer));
                             definer_right_map.put(conjunct, definer);
+							Formula temp_conjunct = conjunct.clone();
 
                             subsumee.getSubformulae().remove(conjunct);
                             subsumee.getSubformulae().add(definer);
                             //conjunct.getSubFormulas().set(1, definer);
 
                             output_list.addAll(introduceDefiners(role, formula));
-                            output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
+                            output_list.addAll(introduceDefiners(role, new Inclusion(temp_conjunct, definer)));
                             break;
 
                         } else {
                             AtomicConcept definer = definer_right_map.get(conjunct);
-                            conjunct.getSubFormulas().set(1, definer);
+                            //conjunct.getSubFormulas().set(1, definer);
+							subsumee.getSubformulae().remove(conjunct);
+							subsumee.getSubformulae().add(definer);
                             output_list.addAll(introduceDefiners(role, formula));
                             break;
                         }
@@ -1114,7 +1115,7 @@ public class DefinerIntroducer {
 								definer_right_map.put(filler, definer);
 								conjunct.getSubFormulas().set(1, definer);
 								output_list.addAll(introduceDefiners(role, formula));
-								output_list.addAll(introduceDefiners(role, new Inclusion(filler, definer)));
+								output_list.addAll(introduceDefiners(role, new Inclusion(filler,definer)));
 								break;
 
 							} else {
@@ -1170,7 +1171,7 @@ public class DefinerIntroducer {
 				} else {
 					AtomicConcept definer = definer_right_map.get(filler);
 					subsumee.getSubFormulas().set(1, definer);
-					output_list.addAll(introduceDefiners(role, formula));
+					output_list.addAll(introduceDefiners(role, formula.clone()));
 				}
 
 			} else if (subsumee instanceof And) {
@@ -1209,17 +1210,20 @@ public class DefinerIntroducer {
                         definer_set.add(definer);
                         // owldefiner_set.add(bc.getClassfromConcept(definer));
                         definer_right_map.put(conjunct, definer);
+                        Formula conjunct_temp = conjunct.clone();
                         subsumee.getSubformulae().remove(conjunct);
                         subsumee.getSubformulae().add(definer);
                         //conjunct.getSubFormulas().set(1, definer);
 
                         output_list.addAll(introduceDefiners(role, formula));
-                        output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
+                        output_list.addAll(introduceDefiners(role, new Inclusion(conjunct_temp, definer)));
                         break;
 
                     } else {
                         AtomicConcept definer = definer_right_map.get(conjunct);
-                        conjunct.getSubFormulas().set(1, definer);
+                        //conjunct.getSubFormulas().set(1, definer);
+						subsumee.getSubformulae().remove(conjunct);
+						subsumee.getSubformulae().add(definer);
                         output_list.addAll(introduceDefiners(role, formula));
                         break;
                     }
@@ -1417,16 +1421,19 @@ public class DefinerIntroducer {
                             definer_set.add(definer);
                             // owldefiner_set.add(bc.getClassfromConcept(definer));
                             definer_right_map.put(conjunct, definer);
+							Formula conjunct_temp = conjunct.clone();
                             subsumee.getSubformulae().remove(conjunct);
                             subsumee.getSubformulae().add(definer);
                             //conjunct.getSubFormulas().set(1, definer);
                             output_list.addAll(introduceDefiners(role, formula));
-                            output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
+                            output_list.addAll(introduceDefiners(role, new Inclusion(conjunct_temp, definer)));
                             break;
 
                         } else {
                             AtomicConcept definer = definer_right_map.get(conjunct);
-                            conjunct.getSubFormulas().set(1, definer);
+                            //conjunct.getSubFormulas().set(1, definer);
+							subsumee.getSubformulae().remove(conjunct);
+							subsumee.getSubformulae().add(definer);
                             output_list.addAll(introduceDefiners(role, formula));
                             break;
                         }

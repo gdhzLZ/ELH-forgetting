@@ -546,7 +546,7 @@ public class Inferencer {
 				negative_exists_premises.add(formula);
 			}
 		}
-		/*
+
 		System.out.println("2  "+ positive_star_premises.size());
 		System.out.println("2  "+ negative_star_premises.size());
 
@@ -554,7 +554,7 @@ public class Inferencer {
 
 		System.out.println("2  "+ negative_exists_premises.size());
 
-		 */
+
 
 
 		//Case I 对应论文的f e
