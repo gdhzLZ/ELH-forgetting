@@ -584,58 +584,70 @@ public class Inferencer {
 			}
 		}
 		// Case III h
-		int tempi = 0,tempj = 0;
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(onto);
+		if(positive_exists_premises.size()>0 && negative_exists_premises.size() > 0) {
+			int tempi = 0, tempj = 0;
+			OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(onto);
 
-		for (Formula pe_premise : positive_exists_premises) {
-			tempi++;
+			for (Formula pe_premise : positive_exists_premises) {
+				tempi++;
 
-			Formula pe_subsumee = pe_premise.getSubFormulas().get(0);
-			Formula pe_subsumer = pe_premise.getSubFormulas().get(1);
-			Formula pe_subsumer_filler = pe_subsumer.getSubFormulas().get(1);//D
-			for (Formula ne_premise : negative_exists_premises) {
-				tempj++;
-				Formula ne_subsumee = ne_premise.getSubFormulas().get(0);
-				Formula ne_subsumer = ne_premise.getSubFormulas().get(1);
-				Formula ne_subsumee_filler = null;//表示  f and exist r.E in C 中的 E
-				Formula stored_conjunct = null;// exist r.E
-				if (ne_subsumee instanceof Exists) {
-					ne_subsumee_filler = ne_subsumee.getSubFormulas().get(1);
-				} else {
-					Set<Formula> conjunct_set = ne_subsumee.getSubformulae();
-					for (Formula conjunct : conjunct_set) {
+				Formula pe_subsumee = pe_premise.getSubFormulas().get(0);
+				Formula pe_subsumer = pe_premise.getSubFormulas().get(1);
+				Formula pe_subsumer_filler = pe_subsumer.getSubFormulas().get(1);//D
+				for (Formula ne_premise : negative_exists_premises) {
+					tempj++;
+					Formula ne_subsumee = ne_premise.getSubFormulas().get(0);
+					Formula ne_subsumer = ne_premise.getSubFormulas().get(1);
+					Formula ne_subsumee_filler = null;//表示  f and exist r.E in C 中的 E
+					Formula stored_conjunct = null;// exist r.E
+					if (ne_subsumee instanceof Exists) {
+						ne_subsumee_filler = ne_subsumee.getSubFormulas().get(1);
+					} else {
+						Set<Formula> conjunct_set = ne_subsumee.getSubformulae();
+						for (Formula conjunct : conjunct_set) {
 
-						if (ec.isPresent(role, conjunct)) {
-							ne_subsumee_filler = conjunct.getSubFormulas().get(1);
-							stored_conjunct = conjunct;
-							break;
+							if (ec.isPresent(role, conjunct)) {
+								ne_subsumee_filler = conjunct.getSubFormulas().get(1);
+								stored_conjunct = conjunct;
+								break;
+							}
 						}
 					}
-				}
+					System.out.println(pe_subsumer_filler);
+					System.out.println(ne_subsumee_filler);
+					Formula inclusion = new Inclusion(pe_subsumer_filler, ne_subsumee_filler);
+					OWLAxiom axiom = bc.toOWLAxiom(inclusion);
 
-				Formula inclusion = new Inclusion(pe_subsumer_filler, ne_subsumee_filler);
-				OWLAxiom axiom = bc.toOWLAxiom(inclusion);
+					if (elkEntailment.entailed(reasoner, axiom, 2)) {
+						Formula new_inclusion = null;
+						if (ne_subsumee instanceof Exists) {
+							new_inclusion = new Inclusion(pe_subsumee, ne_subsumer);
+						} else {
+/*
+						ne_subsumee.getSubformulae().remove(stored_conjunct);
+						ne_subsumee.getSubformulae().add(pe_subsumee);
+						new_inclusion = new Inclusion(ne_subsumee, ne_subsumer);
 
-				if (elkEntailment.entailed(reasoner,axiom,2)) {
-					Formula new_inclusion = null;
-					if (ne_subsumee instanceof Exists) {
-						new_inclusion = new Inclusion(pe_subsumee, ne_subsumer);
-					} else {
-						Set<Formula> new_conjunct_set = new LinkedHashSet<>(ne_subsumee.getSubformulae());
-						new_conjunct_set.remove(stored_conjunct);
-						new_conjunct_set.add(pe_subsumee);
-						Formula new_subsumee = new And(new_conjunct_set);
-						new_inclusion = new Inclusion(new_subsumee, ne_subsumer);
+ */
+
+							Set<Formula> new_conjunct_set = new LinkedHashSet<>(ne_subsumee.getSubformulae());
+							new_conjunct_set.remove(stored_conjunct);
+							new_conjunct_set.add(pe_subsumee);
+							Formula new_subsumee = new And(new_conjunct_set);
+							new_inclusion = new Inclusion(new_subsumee, ne_subsumer);
+
+
+						}
+						if (!tc.isTautology(new_inclusion)) output_list.add(new_inclusion);
+						//BackTrack.addFatherHash(new_inclusion.clone(),pe_premise.clone(),ne_premise.clone(),11);
 					}
-					if(!tc.isTautology(new_inclusion))  output_list.add(new_inclusion);
-					//BackTrack.addFatherHash(new_inclusion.clone(),pe_premise.clone(),ne_premise.clone(),11);
+
 				}
+				//System.out.println(" "+"size :" +positive_exists_premises.size()+" "+" "+negative_exists_premises.size()+" "+tempi+" "+output_list.size());
 
 			}
-			//System.out.println(" "+"size :" +positive_exists_premises.size()+" "+" "+negative_exists_premises.size()+" "+tempi+" "+output_list.size());
-
+			reasoner.dispose();
 		}
-		reasoner.dispose();
 
 		//System.out.println("The output list of Ackermann_A: " + output_list);
 		return new ArrayList<>(output_list);
@@ -720,15 +732,15 @@ public class Inferencer {
 
 		} else if (toBeReplaced instanceof Exists) {
 			//System.out.println(3);
+			Formula t1 = AckermannReplace(concept, toBeReplaced.getSubFormulas().get(1), definition);
 
-			return new Exists(AckermannReplace(concept, toBeReplaced.getSubFormulas().get(0), definition),
-					AckermannReplace(concept, toBeReplaced.getSubFormulas().get(1), definition));
+			return new Exists(toBeReplaced.getSubFormulas().get(0), t1);
 
 		} else if (toBeReplaced instanceof Inclusion) {
 			//System.out.println(4);
-
-			return new Inclusion(AckermannReplace(concept, toBeReplaced.getSubFormulas().get(0), definition),
-					AckermannReplace(concept, toBeReplaced.getSubFormulas().get(1), definition));
+			Formula t1 = AckermannReplace(concept, toBeReplaced.getSubFormulas().get(0), definition);
+			Formula t2 = AckermannReplace(concept, toBeReplaced.getSubFormulas().get(1), definition);
+			return new Inclusion(t1, t2);
 
 		} else if (toBeReplaced instanceof And) {
 			//System.out.println(5);

@@ -8,8 +8,10 @@ import convertion.BackConverter;
 import convertion.Converter;
 import forgetting.*;
 import formula.Formula;
+import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import roles.AtomicRole;
@@ -28,6 +30,13 @@ public class TestForgetting {
             listFileName.add(path+name);
         }
         return listFileName;
+    }
+    public static void saveUI(Set<OWLAxiom> ui, String path)throws Exception{
+
+        OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
+        OWLOntology now = manager.createOntology(ui);
+        OutputStream ops = new FileOutputStream(new File(path));
+        manager.saveOntology(now, new OWLXMLDocumentFormat(), ops);
     }
     public static List<OWLObjectProperty> getSubStringByRadom1(List<OWLObjectProperty> list, int count){
         List backList = null;
@@ -242,6 +251,8 @@ public class TestForgetting {
             }
         }
     }
+
+
     public static void test3(String dictPath)throws Exception{
         String filelog = "log"+".txt";
         ArrayList<String> hasRecord = readFile.readFile(dictPath+filelog);
@@ -263,11 +274,12 @@ public class TestForgetting {
                         break;
                     }
                 }
-                if(path.contains("ontology_202001") && path2.contains("ontology_202003")) continue;
+                if(path.contains("202001")) continue;
+                if(!(path.contains("ontology_201707") && path2.contains("ontology_201701"))) continue;
                 if (hasRead == 1) continue;
                 if (!path.contains(".owl") || !path2.contains(".owl")) continue;
                 OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
-
+                System.out.println(dictPath+path.substring(path.length()-10,path.length()-4)+path2.substring(path2.length()-10,path2.length()-4)+".owl");
 
                 System.out.println(path);
                 System.out.println(path2);
@@ -329,7 +341,7 @@ public class TestForgetting {
 
                 String log = path + "," + path2+","+logicalsize1 + "," +logicalsize2+","+ rolesize1 + "," +rolesize2+","+
                         conceptsize1 + "," +conceptsize2+","+ GCIsize1 + "," + GCIsize2 + "," +GCIrolesize1 + "," +GCIrolesize2 + "," +
-                        GCIconceptsize1 + ","+ GCIconceptsize2 + ","+ Sets.difference(roles2,roles1).size()+","+Sets.difference(concepts2,concepts1).size()+
+                        GCIconceptsize1 + ","+ GCIconceptsize2 + ","+ Sets.difference(roles2,roles1).size()+","+Sets.difference(concepts2,concepts1).size()+","+
                         Sets.intersection(GCIroles2, Sets.difference(roles2,roles1)).size()+","+Sets.intersection(GCIconcepts2, Sets.difference(concepts2,concepts1)).size();
 
 
@@ -347,7 +359,7 @@ public class TestForgetting {
                 AtomicConcept.setDefiner_index(1);
 
 
-                SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager1, onto2, ModuleType.BOT);
+                SyntacticLocalityModuleExtractor extractor = new SyntacticLocalityModuleExtractor(manager1, onto2, ModuleType.STAR);
                 Set<OWLAxiom> moduleOnto_2OnCommonSig = extractor.extract(Sets.difference(onto2.getSignature(),forgettingSignatures));
                 Set<OWLLogicalAxiom> moduleOnto_2OnCommonSig_logical = new HashSet<>();
                 for (OWLAxiom axiom : moduleOnto_2OnCommonSig) {
@@ -366,12 +378,14 @@ public class TestForgetting {
                             + role_set.size() + "] role names from [" + moduleOnto_2OnCommonSig_logical.size() + "] normalized axioms");
 
                     List<Formula> ui = fg.Forgetting(role_set, concept_set, formulaList, onto2);
+
                    // elkEntailment.check(onto2,ui);
                     long time2 = System.currentTimeMillis();
                     long mem2 = r.freeMemory();
                     time += (time2 - time1);
                     mem += (mem1 - mem2);
                     Set<OWLAxiom> uniform_interpolant = bc.toOWLAxioms(ui);
+                    saveUI(uniform_interpolant,dictPath+path.substring(path.length()-10,path.length()-4)+path2.substring(path2.length()-10,path2.length()-4)+".owl");
 
                     for(OWLLogicalAxiom axiom : onto2.getLogicalAxioms()){
                         if(Sets.intersection(axiom.getSignature(),forgettingSignatures).size() == 0 ){
@@ -381,7 +395,9 @@ public class TestForgetting {
                     uniform_interpolant = Sets.difference(uniform_interpolant,onto1.getAxioms());
                     afterForgettingAxiomsSize = uniform_interpolant.size();
                     OWLReasoner reasoner =  new ElkReasonerFactory().createReasoner(onto1);
+                    int all = 0;
                     for (OWLAxiom axiom : uniform_interpolant) {
+                        all++;
                         if(!elkEntailment.entailed(reasoner,axiom)){
                             if (onto2.getAxioms().contains(axiom)) {
                                 witness_explicit_onto++;
@@ -389,13 +405,13 @@ public class TestForgetting {
                                 System.out.println(uniform_interpolant.size());
                             } else {
                                 witness_implicit_onto++;
-                                System.out.println("witness_explicit num= " + witness_implicit_onto);
+                                System.out.println("witness_implicit num= " + witness_implicit_onto);
                                 System.out.println(uniform_interpolant.size());
 
                             }
                         }
                         else{
-                            System.out.println("it is entailed");
+                            System.out.println("it is entailed "+all+" "+uniform_interpolant.size());
                         }
                     }
                     reasoner.dispose();
@@ -405,7 +421,7 @@ public class TestForgetting {
                     nowLog = nowLog + ",0,0,0,1,0,0,0,0,0\n";
                     writeFile.writeFile(dictPath + filelog, nowLog);
                     System.err.println("outofmemory");
-
+                    e.printStackTrace();
                     success = 0;
                 } catch (StackOverflowError e) {
                     nowLog = nowLog + ",0,0,0,2,0,0,0,0,0\n";
@@ -431,9 +447,40 @@ public class TestForgetting {
             }
         }
     }
-    public static void main(String[] args)throws Exception{
+    public static void tt()throws Exception{
+        OWLOntologyManager manager1 = OWLManager.createOWLOntologyManager();
+        OWLOntologyManager manager2 = OWLManager.createOWLOntologyManager();
+        System.out.println("Onto_2 Path: ");
+        String filePath2 = "/Users/liuzhao/Desktop/experiments/Test_data_for_logical_difference/Test_Data/all/ontology_201707.owl";
+        OWLOntology onto_2 = manager2.loadOntologyFromOntologyDocument(new File(filePath2));
+        String ui = "/Users/liuzhao/Desktop/experiments/Test_data_for_logical_difference/Test_Data/all/201707201701.owl";
+        OWLOntology uniform_interpolant = manager1.loadOntologyFromOntologyDocument(new File(ui));
+        System.out.println("onto_2 size = " + onto_2.getLogicalAxiomCount());
+        System.out.println("c_sig_2 size = " + onto_2.getClassesInSignature().size());
+        System.out.println("r_sig_2 size = " + onto_2.getObjectPropertiesInSignature().size());
+        OWLReasoner reasoner2 =  new ElkReasonerFactory().createReasoner(onto_2);
+        int num = 0;
+        int isnot = 0;
+        Set<OWLLogicalAxiom> axioms = uniform_interpolant.getLogicalAxioms();
+        for(OWLAxiom axiom : axioms){
+            if(!elkEntailment.entailed(reasoner2,axiom)){
+                isnot++;
+                if(axiom.toString().contains("Definer")){
+                    System.out.println("hhhh");
+                }
+                System.out.println("it is not entailed! "+isnot);
+            }
+            System.out.println(num+" "+axioms.size());
+            num++;
+        }
+        reasoner2.dispose();
 
-        String dictPath = "/Users/liuzhao/Desktop/experiments/Test_data_for_logical_difference/Test_Data/all/";
-        test3(dictPath);
+
+    }
+    public static void main(String[] args)throws Exception{
+        tt();
+        //String dictPath = "/Users/liuzhao/Desktop/experiments/Test_data_for_forgetting/TestData/Corpus_1/";
+        //String dictPath = "/Users/liuzhao/Desktop/experiments/Test_data_for_logical_difference/Test_Data/all/";
+        //test3(dictPath);
     }
 }

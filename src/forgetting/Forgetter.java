@@ -64,13 +64,13 @@ public class Forgetter {
 				System.out.println("Forgetting Role [" + i + "] = " + role);
 				i++;
 				//if(!role.toString().contains("http://snomed.info/id/732945000")) continue;
-
+				System.out.println(r_sig_list_normalised.size());
 				pivot_list_normalised = se.getRoleSubset(role, r_sig_list_normalised);
 				if (pivot_list_normalised.isEmpty()) {
 
 				} else {
                     Set<Formula> beforeIntroDefiners = new LinkedHashSet<>(pivot_list_normalised);
-
+					System.out.println(11);
                     pivot_list_normalised = di.introduceDefiners(role, pivot_list_normalised);///
                     Set<Formula> afterIntroDefiners = new LinkedHashSet<>(pivot_list_normalised);
 

@@ -82,49 +82,13 @@ public class DefinerIntroducer {
 			}
 			System.out.println("--------------------" );
 
+
+
 		}
 
 		return output_list;
 	}
 
-	public static void main(String[] args)throws Exception {
-		AtomicConcept a = new AtomicConcept("A");
-		AtomicConcept b = new AtomicConcept("B");
-		AtomicConcept c = new AtomicConcept("C");
-		AtomicConcept d = new AtomicConcept("D");
-		AtomicRole r = new AtomicRole("r");
-		AtomicRole s = new AtomicRole("s");
-
-		DefinerIntroducer di = new DefinerIntroducer();
-
-		Formula temp = null;
-
-		Set<Formula> andset2 = new LinkedHashSet<>();
-		andset2.add(a);andset2.add(b);
-		And and2 = new And(andset2); // a and b
-
-
-		temp = new Exists(r,and2);
-
-		Set<Formula> andset = new LinkedHashSet<>();
-		andset.add(a);andset.add(temp);andset.add(new Exists(r,a));
-		And and3 = new And(andset);
-		Inclusion inc3 = new Inclusion(new Exists(r,and3),c);
-		System.out.println(inc3);
-		List<Formula> result2 = di.introduceDefiners(a, inc3);
-		System.out.println("result2 = " + result2);
-		System.out.println("result2 = " + inc3);
-
-        Set<Formula> now = new HashSet<>();
-        now.add(new AtomicConcept("A"));
-        now.add(new AtomicConcept("B"));
-        And n = new And(now);
-        System.out.println(n.hashCode());
-        n.getSubformulae().remove(new AtomicConcept("A"));
-        n.getSubformulae().add(new AtomicConcept("C"));
-
-        System.out.println(n.hashCode());
-	}
 
 	public List<Formula> introduceDefiners(AtomicConcept concept, Formula formula1) throws Exception{
 		Formula formula = formula1.clone();
@@ -800,7 +764,7 @@ public class DefinerIntroducer {
 		for (Formula formula : input_list) {
 
 			Formula formulaClone = formula.clone();
-			Formula outputFormula = formula.clone();
+			System.out.println(formulaClone+" "+input_list.size());
 			List<Formula> re = introduceDefiners(role, formulaClone);
 
 			output_list.addAll(re);
@@ -819,13 +783,15 @@ public class DefinerIntroducer {
 
 
 			System.out.println("original formla and role: " );
-			System.out.println(outputFormula+" "+role);
+			System.out.println(formulaClone+" "+role);
 			System.out.println("after introduced :");
 			for(Formula temp : re){
 				System.out.println(temp);
 
 			}
 			System.out.println("--------------------" );
+
+
 
 		}
 		return output_list;
@@ -927,7 +893,6 @@ public class DefinerIntroducer {
 			}
 
 		} else if (r_subsumee > 1 && r_subsumer == 0) {
-
 			if (subsumee instanceof Exists) {
 
 				Formula filler = subsumee.getSubFormulas().get(1);
