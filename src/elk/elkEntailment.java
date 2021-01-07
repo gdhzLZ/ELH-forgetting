@@ -16,6 +16,8 @@ import java.util.*;
 public class elkEntailment {
     public static HashMap<OWLAxiom,Boolean>hasChecked_OnO2 = new HashMap<>();
     public  static boolean  entailed(OWLReasoner reasoner, OWLAxiom i  ){
+        //return reasoner.isEntailed(i);
+        if(i.toString().contains("Definer")) return false;
 
         boolean isentailed = false;
         if (i instanceof OWLSubObjectPropertyOfAxiom){
@@ -36,13 +38,17 @@ public class elkEntailment {
         }
 
         return isentailed;
+
+
     }
     //this function uses a cache to avoid checking the axioms which had been checked before. This function only been used while forgetting.
     public  static boolean  entailed(OWLReasoner reasoner, OWLAxiom i ,Integer tag ){
+        if(i.toString().contains("Definer")) return false;
         if(tag == 2 && hasChecked_OnO2.containsKey(i)){
 
             return hasChecked_OnO2.get(i);
         }
+
         boolean isentailed = false;
         if (i instanceof OWLSubObjectPropertyOfAxiom){
             OWLSubObjectPropertyOfAxiom now = (OWLSubObjectPropertyOfAxiom) i;
@@ -60,6 +66,9 @@ public class elkEntailment {
             System.out.print("this is unknown type ");
 
         }
+
+
+        //boolean isentailed = reasoner.isEntailed(i);
         if(tag == 2){
             hasChecked_OnO2.put(i,isentailed);
         }
@@ -73,10 +82,10 @@ public class elkEntailment {
         int len = uniform_interpolant.size();
         for(Formula formula : uniform_interpolant){
             OWLAxiom axiom = bc.toOWLAxiom(formula);
-            if(!entailed(reasoner,axiom,1)){
+            if(!entailed(reasoner,axiom)){
                 System.out.println("Unexpected Axiom: " + formula +" "+ TestForgetting.isExtra );
+                BackTrack.getInferencePath(formula);
                 throw new Exception("unexpected");
-               // BackTrack.getInferencePath(formula);
 
             }
             else{

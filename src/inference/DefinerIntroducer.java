@@ -55,10 +55,10 @@ public class DefinerIntroducer {
 		List<Formula> output_list = new ArrayList<>();
 
 		for (Formula formula : input_list) {
-
-			Formula formulaClone = formula.clone();
-			Formula outputFormula = formula.clone();
-			List<Formula> re = introduceDefiners(concept, formulaClone);
+			System.out.println(formula);
+			//Formula formulaClone = formula.clone();
+			//Formula outputFormula = formula.clone();
+			List<Formula> re = introduceDefiners(concept, formula);
 
 			output_list.addAll(re);
 			if(re.size() <= 1) continue;
@@ -74,7 +74,7 @@ public class DefinerIntroducer {
 
 
 			System.out.println("original formla : " );
-			System.out.println(outputFormula+" "+concept);
+			System.out.println(formula+" "+concept);
 			System.out.println("after introduced :");
 			for(Formula temp : re){
 				System.out.println(temp);
@@ -90,8 +90,8 @@ public class DefinerIntroducer {
 	}
 
 
-	public List<Formula> introduceDefiners(AtomicConcept concept, Formula formula1) throws Exception{
-		Formula formula = formula1.clone();
+	public List<Formula> introduceDefiners(AtomicConcept concept, Formula formula) throws Exception{
+
 		List<Formula> output_list = new ArrayList<>();
 		EChecker ec = new EChecker();
 		FChecker fc = new FChecker();
@@ -762,10 +762,11 @@ public class DefinerIntroducer {
 
 
 		for (Formula formula : input_list) {
+			System.out.println(formula);
 
-			Formula formulaClone = formula.clone();
-			System.out.println(formulaClone+" "+input_list.size());
-			List<Formula> re = introduceDefiners(role, formulaClone);
+			//Formula formulaClone = formula.clone();
+			//System.out.println(formulaClone+" "+input_list.size());
+			List<Formula> re = introduceDefiners(role, formula);
 
 			output_list.addAll(re);
 
@@ -783,7 +784,7 @@ public class DefinerIntroducer {
 
 
 			System.out.println("original formla and role: " );
-			System.out.println(formulaClone+" "+role);
+			System.out.println(formula+" "+role);
 			System.out.println("after introduced :");
 			for(Formula temp : re){
 				System.out.println(temp);
@@ -799,8 +800,8 @@ public class DefinerIntroducer {
 
 	}
 
-	public List<Formula> introduceDefiners(AtomicRole role, Formula formula1)throws Exception {
-		Formula formula = formula1.clone();
+	public List<Formula> introduceDefiners(AtomicRole role, Formula formula)throws Exception {
+		//Formula formula = formula1.clone();
 		List<Formula> output_list = new ArrayList<>();
 		EChecker ec = new EChecker();
 		FChecker fc = new FChecker();
@@ -949,14 +950,13 @@ public class DefinerIntroducer {
                             definer_set.add(definer);
 							// owldefiner_set.add(bc.getClassfromConcept(definer));
                             definer_right_map.put(conjunct, definer);
-							Formula temp_conjunct = conjunct.clone();
 
                             subsumee.getSubformulae().remove(conjunct);
                             subsumee.getSubformulae().add(definer);
                             //conjunct.getSubFormulas().set(1, definer);
 
                             output_list.addAll(introduceDefiners(role, formula));
-                            output_list.addAll(introduceDefiners(role, new Inclusion(temp_conjunct, definer)));
+                            output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
                             break;
 
                         } else {
@@ -1136,7 +1136,7 @@ public class DefinerIntroducer {
 				} else {
 					AtomicConcept definer = definer_right_map.get(filler);
 					subsumee.getSubFormulas().set(1, definer);
-					output_list.addAll(introduceDefiners(role, formula.clone()));
+					output_list.addAll(introduceDefiners(role, formula));
 				}
 
 			} else if (subsumee instanceof And) {
@@ -1175,13 +1175,13 @@ public class DefinerIntroducer {
                         definer_set.add(definer);
                         // owldefiner_set.add(bc.getClassfromConcept(definer));
                         definer_right_map.put(conjunct, definer);
-                        Formula conjunct_temp = conjunct.clone();
+                        //Formula conjunct_temp = conjunct.clone();
                         subsumee.getSubformulae().remove(conjunct);
                         subsumee.getSubformulae().add(definer);
                         //conjunct.getSubFormulas().set(1, definer);
 
                         output_list.addAll(introduceDefiners(role, formula));
-                        output_list.addAll(introduceDefiners(role, new Inclusion(conjunct_temp, definer)));
+                        output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
                         break;
 
                     } else {
@@ -1386,12 +1386,12 @@ public class DefinerIntroducer {
                             definer_set.add(definer);
                             // owldefiner_set.add(bc.getClassfromConcept(definer));
                             definer_right_map.put(conjunct, definer);
-							Formula conjunct_temp = conjunct.clone();
+							//Formula conjunct_temp = conjunct.clone();
                             subsumee.getSubformulae().remove(conjunct);
                             subsumee.getSubformulae().add(definer);
                             //conjunct.getSubFormulas().set(1, definer);
                             output_list.addAll(introduceDefiners(role, formula));
-                            output_list.addAll(introduceDefiners(role, new Inclusion(conjunct_temp, definer)));
+                            output_list.addAll(introduceDefiners(role, new Inclusion(conjunct, definer)));
                             break;
 
                         } else {

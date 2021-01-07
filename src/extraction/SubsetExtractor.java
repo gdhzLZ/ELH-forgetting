@@ -19,7 +19,7 @@ public class SubsetExtractor {
 	public List<Formula> getConceptSubset(AtomicConcept concept, List<Formula> formula_list) {
 		
 		List<Formula> output_list = new ArrayList<>();
-
+		int len = formula_list.size();
 		for (int i = 0; i < formula_list.size(); i++) {
 			Formula formula = formula_list.get(i);
 			Set<AtomicConcept> c_set = formula.get_c_sig();
@@ -38,7 +38,7 @@ public class SubsetExtractor {
 	public List<Formula> getConceptSubset(Set<AtomicConcept> c_sig, List<Formula> formula_list) {
 
 		List<Formula> c_sig_list = new ArrayList<>();
-
+		int len = formula_list.size();
 		for (int i = 0; i < formula_list.size(); i++) {
 			Formula formula = formula_list.get(i);
 			Set<AtomicConcept> c_set = formula.get_c_sig();
@@ -55,7 +55,7 @@ public class SubsetExtractor {
 	public List<Formula> getRoleSubset(AtomicRole role, List<Formula> formula_list) {
 
 		List<Formula> role_list = new ArrayList<>();
-
+		int len = formula_list.size();
 		for (int i = 0; i < formula_list.size(); i++) {
 			Formula formula = formula_list.get(i);
 			Set<AtomicRole> r_set = formula.get_r_sig();
@@ -74,7 +74,7 @@ public class SubsetExtractor {
 	public List<Formula> getRoleSubset(Set<AtomicRole> r_sig, List<Formula> formula_list) {
 
 		List<Formula> r_sig_list = new ArrayList<>();
-
+		int len = formula_list.size();
 		for (int i = 0; i < formula_list.size(); i++) {
 			Formula formula = formula_list.get(i);
 			Set<AtomicRole> r_set = formula.get_r_sig();
